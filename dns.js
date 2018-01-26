@@ -12,7 +12,10 @@ const wire = require('./wire');
 
 const {
   Message,
+  Question,
   Record,
+  ARecord,
+  AAAARecord,
   types,
   classes,
   codes,
@@ -20,6 +23,10 @@ const {
 } = wire;
 
 const server = dgram.createSocket('udp4');
+
+function dir(obj) {
+  console.dir(obj, { depth: 20, customInspect: true, colors: true });
+}
 
 server.on('error', (err) => {
   console.log(`server error:\n${err.stack}`);
@@ -39,6 +46,8 @@ server.on('message', (data, {port, address}) => {
   res.id = msg.id;
   res.opcode = msg.opcode;
   res.response = true;
+  res.code = codes.NOERROR;
+  res.question = msg.question;
 
   for (const q of msg.question) {
     if (q.class !== classes.INET
@@ -47,16 +56,15 @@ server.on('message', (data, {port, address}) => {
     }
 
     const answer = new Record();
-    answer.code = codes.SUCCESS;
     answer.name = q.name;
     answer.class = classes.INET;
 
     if (q.type === types.A || q.type === types.ANY) {
       answer.type = types.A;
-      answer.data = Buffer.from([1,2,3,4]);
+      answer.data = new ARecord();
     } else if (q.type === types.AAAA) {
       answer.type = types.AAAA;
-      answer.data = Buffer.alloc(16, 0xff);
+      answer.data = new AAAARecord();
     } else {
       continue;
     }
@@ -66,9 +74,9 @@ server.on('message', (data, {port, address}) => {
 
   server.send(res.toRaw(), port, address);
 
-  console.log(msg);
-  console.log(res);
-  console.log(Message.fromRaw(res.toRaw()));
+  dir(msg);
+  dir(res);
+  dir(Message.fromRaw(res.toRaw()));
 });
 
 server.on('listening', () => {
@@ -77,5 +85,39 @@ server.on('listening', () => {
 });
 
 // $ dig @127.0.0.1 google.com -p 41234
+//server.bind(41234);
 
-server.bind(41234);
+const socket = dgram.createSocket('udp4');
+
+socket.on('error', (err) => {
+  console.log(`server error:\n${err.stack}`);
+  socket.close();
+});
+
+socket.on('message', (data, {port, address}) => {
+  const msg = Message.fromRaw(data);
+  dir(msg);
+});
+
+function resolve() {
+  const req = new Message();
+  req.id = 101;
+  req.opcode = opcodes.QUERY;
+
+  const q = new Question();
+  q.name = 'com.';
+  q.type = types.ANY;
+  q.class = classes.INET;
+
+  req.question.push(q);
+
+  const msg = req.toRaw();
+  socket.send(msg, 0, msg.length, 53, '208.67.222.222');
+}
+
+socket.bind(() => {
+  // socket.setBroadcast(true);
+  // socket.setMulticastTTL(128);
+  // socket.addMembership('8.8.8.8');
+  resolve();
+});
