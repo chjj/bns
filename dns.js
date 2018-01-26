@@ -15,7 +15,7 @@ const {
   Record,
   types,
   classes,
-  rcodes,
+  codes,
   opcodes
 } = wire;
 
@@ -41,21 +41,21 @@ server.on('message', (data, {port, address}) => {
   res.response = true;
 
   for (const q of msg.question) {
-    if (q.qclass !== classes.INET
-        && q.qclass !== classes.ANY) {
+    if (q.class !== classes.INET
+        && q.class !== classes.ANY) {
       continue;
     }
 
     const answer = new Record();
-    answer.rcode = rcodes.SUCCESS;
+    answer.code = codes.SUCCESS;
     answer.name = q.name;
     answer.class = classes.INET;
 
-    if (q.qtype === types.A || q.qtype === types.ANY) {
-      answer.rrtype = types.A;
+    if (q.type === types.A || q.type === types.ANY) {
+      answer.type = types.A;
       answer.data = Buffer.from([1,2,3,4]);
-    } else if (q.qtype === types.AAAA) {
-      answer.rrtype = types.AAAA;
+    } else if (q.type === types.AAAA) {
+      answer.type = types.AAAA;
       answer.data = Buffer.alloc(16, 0xff);
     } else {
       continue;

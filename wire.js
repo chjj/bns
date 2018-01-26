@@ -112,7 +112,7 @@ const classes = {
   ANY: 255
 };
 
-const rcodes = {
+const codes = {
   // Message Response Codes
   // https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
   SUCCESS: 0, // No Error
@@ -168,7 +168,7 @@ class Message {
     this.zero = false;
     this.authenticatedData = false;
     this.checkingDisabled = false;
-    this.rcode = 0;
+    this.code = 0; // rcode
     this.question = [];
     this.answer = [];
     this.ns = [];
@@ -225,8 +225,8 @@ class Message {
     if (this.checkingDisabled)
       bits |= flags.CD;
 
-    if (this.rcode)
-      bits |= this.rcode & 0x0f;
+    if (this.code)
+      bits |= this.code & 0x0f;
 
     bw.writeU16BE(bits);
     bw.writeU16BE(this.question.length);
@@ -272,7 +272,7 @@ class Message {
     this.zero = (bits & flags.Z) !== 0;
     this.authenticatedData = (bits & flags.AD) !== 0;
     this.checkingDisabled = (bits & flags.CD) !== 0;
-    this.rcode = bits & 0x0f;
+    this.code = bits & 0x0f;
 
     for (let i = 0; i < qdcount; i++) {
       const q = Question.fromReader(br);
@@ -321,8 +321,8 @@ class Message {
 class Question {
   constructor() {
     this.name = '';
-    this.qtype = 0;
-    this.qclass = 0;
+    this.type = 0; // qtype
+    this.class = 0; // qclass
   }
 
   getSize() {
@@ -331,8 +331,8 @@ class Question {
 
   toWriter(bw) {
     writeNameBW(bw, this.name);
-    bw.writeU16BE(this.qtype);
-    bw.writeU16BE(this.qclass);
+    bw.writeU16BE(this.type);
+    bw.writeU16BE(this.class);
     return bw;
   }
 
@@ -347,12 +347,12 @@ class Question {
     if (br.left() === 0)
       return this;
 
-    this.qtype = br.readU16BE();
+    this.type = br.readU16BE();
 
     if (br.left() === 0)
       return this;
 
-    this.qclass = br.readU16BE();
+    this.class = br.readU16BE();
 
     if (br.left() === 0)
       return this;
@@ -376,7 +376,7 @@ class Question {
 class Record {
   constructor() {
     this.name = '';
-    this.rrtype = 0;
+    this.type = 0; // rrtype
     this.class = 0;
     this.ttl = 0;
     this.data = Buffer.alloc(0);
@@ -388,7 +388,7 @@ class Record {
 
   toWriter(bw) {
     writeNameBW(bw, this.name);
-    bw.writeU16BE(this.rrtype);
+    bw.writeU16BE(this.type);
     bw.writeU16BE(this.class);
     bw.writeU32BE(this.ttl);
     bw.writeU16BE(this.data.length);
@@ -403,7 +403,7 @@ class Record {
 
   fromReader(br) {
     this.name = readNameBR(br);
-    this.rrtype = br.readU16BE();
+    this.type = br.readU16BE();
     this.class = br.readU16BE();
     this.ttl = br.readU32BE();
     const rdlength = br.readU16BE();
@@ -426,7 +426,7 @@ class Record {
 
 exports.types = types;
 exports.classes = classes;
-exports.rcodes = rcodes;
+exports.codes = codes;
 exports.opcodes = opcodes;
 exports.flags = flags;
 exports.Message = Message;
