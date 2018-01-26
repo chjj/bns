@@ -26,51 +26,58 @@ const DUMMY6 = Buffer.alloc(6);
 const DUMMY8 = Buffer.alloc(8);
 const DUMMY16 = Buffer.alloc(16);
 
+/**
+ * Record Types (rrtypes)
+ * @enum {Number}
+ * @default
+ */
+
 const types = {
-  // valid rrtypes and qtypes
   NONE: 0,
   A: 1,
   NS: 2,
-  MD: 3,
-  MF: 4,
+  MD: 3, // obsolete
+  MF: 4, // obsolete
   CNAME: 5,
   SOA: 6,
-  MB: 7,
-  MG: 8,
-  MR: 9,
-  NULL: 10,
-  WKS: 11,
+  MB: 7, // experimental
+  MG: 8, // experimental
+  MR: 9, // experimental
+  NULL: 10, // obsolete
+  WKS: 11, // deprecated
   PTR: 12,
-  HINFO: 13,
-  MINFO: 14,
+  HINFO: 13, // not-in-use
+  MINFO: 14, // experimental
   MX: 15,
   TXT: 16,
   RP: 17,
   AFSDB: 18,
-  X25: 19,
-  ISDN: 20,
-  RT: 21,
-  NSAP: 22,
-  NSAPPTR: 23,
-  SIG: 24,
-  KEY: 25,
-  PX: 26,
-  GPOS: 27,
+  X25: 19, // not-in-use
+  ISDN: 20, // not-in-use
+  RT: 21, // not-in-use
+  NSAP: 22, // not-in-use
+  NSAPPTR: 23, // not-in-use
+  SIG: 24, // obsolete
+  KEY: 25, // obsolete
+  PX: 26, // not-in-use
+  GPOS: 27, // deprecated
   AAAA: 28,
   LOC: 29,
-  NXT: 30,
-  EID: 31,
-  NIMLOC: 32,
+  NXT: 30, // obsolete
+  EID: 31, // not-in-use
+  NB: 32, // obsolete
+  NIMLOC: 32, // not-in-use
+  NBSTAT: 33, // obsolete
   SRV: 33,
-  ATMA: 34,
+  ATMA: 34, // not-in-use
   NAPTR: 35,
   KX: 36,
   CERT: 37,
-  A6: 38,
+  A6: 38, // historic
   DNAME: 39,
-  // SINK: 40,
-  OPT: 41,
-  APL: 42,
+  SINK: 40, // unimpl (joke?)
+  OPT: 41, // impl (pseudo-record, edns)
+  APL: 42, // not-in-use
   DS: 43,
   SSHFP: 44,
   IPSECKEY: 45,
@@ -83,18 +90,18 @@ const types = {
   TLSA: 52,
   SMIMEA: 53,
   HIP: 55,
-  NINFO: 56,
-  RKEY: 57,
-  TALINK: 58,
+  NINFO: 56, // proposed
+  RKEY: 57, // proposed
+  TALINK: 58, // proposed
   CDS: 59,
   CDNSKEY: 60,
   OPENPGPKEY: 61,
   CSYNC: 62,
-  SPF: 99,
-  UINFO: 100,
-  UID: 101,
-  GID: 102,
-  UNSPEC: 103,
+  SPF: 99, // obsolete
+  UINFO: 100, // obsolete
+  UID: 101, // obsolete
+  GID: 102, // obsolete
+  UNSPEC: 103, // obsolete
   NID: 104,
   L32: 105,
   L64: 106,
@@ -103,24 +110,26 @@ const types = {
   EUI64: 109,
   URI: 256,
   CAA: 257,
-  AVC: 258,
-
+  AVC: 258, // proposed
   TKEY: 249,
   TSIG: 250,
-
-  // qtypes only
-  IXFR: 251,
-  AXFR: 252,
-  MAILB: 253,
-  MAILA: 254,
-  ANY: 255,
+  IXFR: 251, // unimpl (pseudo-record)
+  AXFR: 252, // unimpl (pseudo-record)
+  MAILB: 253, // experimental, unimpl (qtype)
+  MAILA: 254, // obsolete, unimpl (qtype)
+  ANY: 255, // impl (qtype)
   TA: 32768,
   DLV: 32769,
-  RESERVED: 65535
+  RESERVED: 65535 // unimpl
 };
 
+/**
+ * Question and Record Classes (qclass/rclass)
+ * @enum {Number}
+ * @default
+ */
+
 const classes = {
-  // qclass
   INET: 1,
   CSNET: 2,
   CHAOS: 3,
@@ -129,10 +138,15 @@ const classes = {
   ANY: 255
 };
 
+/**
+ * Response Codes (rcodes)
+ * @see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
+ * @enum {Number}
+ * @default
+ */
+
 const codes = {
-  // Message Response Codes
-  // https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
-  NOERROR: 0,
+  NOERROR: 0, // No Error
   SUCCESS: 0, // No Error
   FORMATERROR: 1, // Format Error
   SERVERFAILURE: 2, // Server Failure
@@ -152,8 +166,14 @@ const codes = {
   BADNAME: 20, // Duplicate key name
   BADALG: 21, // Algorithm not supported
   BADTRUNC: 22, // Bad Truncation
-  BADCOOKIE: 23, // Bad/missing Server Cookie
+  BADCOOKIE: 23 // Bad/missing Server Cookie
 };
+
+/**
+ * Message Opcodes
+ * @enum {Number}
+ * @default
+ */
 
 const opcodes = {
   QUERY: 0,
@@ -162,6 +182,12 @@ const opcodes = {
   NOTIFY: 4,
   UPDATE: 5
 };
+
+/**
+ * Message Flags
+ * @enum {Number}
+ * @default
+ */
 
 const flags = {
   QR: 1 << 15, // query/response (response=1)
@@ -409,7 +435,7 @@ class Record {
     this.type = 0; // rrtype
     this.class = 0;
     this.ttl = 0;
-    this.data = new ANYRecord(); // rdata
+    this.data = new UNKNOWNRecord(); // rdata
   }
 
   getSize() {
@@ -492,350 +518,61 @@ class RecordData {
 }
 
 /**
- * ANY
+ * UNKNOWN Record
  */
 
-class ANYRecord extends RecordData {
+class UNKNOWNRecord extends RecordData {
   constructor() {
     super();
-    this.data = DUMMY;
+    this.rdata = DUMMY;
   }
 
   getSize() {
-    return this.data.length;
+    return this.rdata.length;
   }
 
   toWriter(bw) {
-    bw.writeBytes(this.data);
+    bw.writeBytes(this.rdata);
     return bw;
   }
 
   fromReader(br) {
-    this.data = br.data;
+    this.rdata = br.readBytes(br.left());
     return this;
   }
 }
 
 /**
- * CNAME
+ * A Record
+ * Address Record
+ * @see https://tools.ietf.org/html/rfc1035
  */
 
-class CNAMERecord extends RecordData {
+class ARecord extends RecordData {
   constructor() {
     super();
-    this.target = '';
+    this.ip4 = DUMMY4;
   }
 
   getSize() {
-    return sizeName(this.target);
+    return 4;
   }
 
   toWriter(bw) {
-    writeNameBW(bw, this.target);
+    bw.writeBytes(this.ip4);
     return bw;
   }
 
   fromReader(br) {
-    this.target = readNameBR(br);
+    this.ip4 = br.readBytes(4);
     return this;
   }
 }
 
 /**
- * HINFO
- */
-
-class HINFORecord extends RecordData {
-  constructor() {
-    super();
-    this.cpu = '';
-    this.os = '';
-  }
-
-  getSize() {
-    return 1 + this.cpu.length + 1 + this.os.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.cpu.length);
-    bw.writeString(this.cpu, 'ascii');
-    bw.writeU8(this.os.length);
-    bw.writeString(this.os, 'ascii');
-    return bw;
-  }
-
-  fromReader(br) {
-    this.cpu = br.readString('ascii', br.readU8());
-    this.os = br.readString('ascii', br.readU8());
-    return this;
-  }
-}
-
-/**
- * MB
- */
-
-class MBRecord extends RecordData {
-  constructor() {
-    super();
-    this.mb = '';
-  }
-
-  getSize() {
-    return sizeName(this.mb);
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.mb);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.mb = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * MG
- */
-
-class MGRecord extends RecordData {
-  constructor() {
-    super();
-    this.mg = '';
-  }
-
-  getSize() {
-    return sizeName(this.mg);
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.mg);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.mg = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * MINFO
- */
-
-class MINFORecord extends RecordData {
-  constructor() {
-    super();
-    this.rmail = '';
-    this.email = '';
-  }
-
-  getSize() {
-    return sizeName(this.rmail) + sizeName(this.email);
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.rmail);
-    writeNameBW(bw, this.email);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.rmail = readNameBR(br);
-    this.email = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * MR
- */
-
-class MRRecord extends RecordData {
-  constructor() {
-    super();
-    this.mr = '';
-  }
-
-  getSize() {
-    return sizeName(this.mr);
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.mr);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.mr = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * MF
- */
-
-class MFRecord extends RecordData {
-  constructor() {
-    super();
-    this.mf = '';
-  }
-
-  getSize() {
-    return sizeName(this.mf);
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.mf);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.mf = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * MD
- */
-
-class MDRecord extends RecordData {
-  constructor() {
-    super();
-    this.md = '';
-  }
-
-  getSize() {
-    return sizeName(this.md);
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.md);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.md = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * MX
- */
-
-class MXRecord extends RecordData {
-  constructor() {
-    super();
-    this.preference = 0;
-    this.mx = '';
-  }
-
-  getSize() {
-    return 2 + sizeName(this.mx);
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.preference);
-    writeNameBW(bw, this.mx);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.preference = br.readU16BE();
-    this.mx = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * AFSDB
- */
-
-class AFSDBRecord extends RecordData {
-  constructor() {
-    super();
-    this.subtype = 0;
-    this.hostname = '';
-  }
-
-  getSize() {
-    return 2 + sizeName(this.hostname);
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.subtype);
-    writeNameBW(bw, this.hostname);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.subtype = br.readU16BE();
-    this.hostname = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * X25
- */
-
-class X25Record extends RecordData {
-  constructor() {
-    super();
-    this.psdnAddress = '';
-  }
-
-  getSize() {
-    return 1 + this.psdnAddress.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.psdnAddress.length);
-    bw.writeString(this.psdnAddress, 'ascii');
-    return bw;
-  }
-
-  fromReader(br) {
-    this.psdnAddress = br.readString('ascii', br.readU8());
-    return this;
-  }
-}
-
-/**
- * RT
- */
-
-class RTRecord extends RecordData {
-  constructor() {
-    super();
-    this.preference = 0;
-    this.host = '';
-  }
-
-  getSize() {
-    return 2 + sizeName(this.host);
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.preference);
-    writeNameBW(bw, this.host);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.preference = br.readU16BE();
-    this.host = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * NS
+ * NS Record
+ * Name Server Record
+ * @see https://tools.ietf.org/html/rfc1035#page-12
  */
 
 class NSRecord extends RecordData {
@@ -860,60 +597,93 @@ class NSRecord extends RecordData {
 }
 
 /**
- * PTR
+ * MD Record
+ * Mail Destination Record (obsolete)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc973
  */
 
-class PTRRecord extends RecordData {
+class MDRecord extends RecordData {
   constructor() {
     super();
-    this.ptr = '';
+    this.md = '';
   }
 
   getSize() {
-    return sizeName(this.ptr);
+    return sizeName(this.md);
   }
 
   toWriter(bw) {
-    writeNameBW(bw, this.ptr);
+    writeNameBW(bw, this.md);
     return bw;
   }
 
   fromReader(br) {
-    this.ptr = readNameBR(br);
+    this.md = readNameBR(br);
     return this;
   }
 }
 
 /**
- * RP
+ * MF Record
+ * Mail Forwarder Record (obsolete)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc973
  */
 
-class RPRecord extends RecordData {
+class MFRecord extends RecordData {
   constructor() {
     super();
-    this.mbox = '';
-    this.txt = '';
+    this.mf = '';
   }
 
   getSize() {
-    return sizeName(this.mbox) + sizeName(this.txt);
+    return sizeName(this.mf);
   }
 
   toWriter(bw) {
-    writeNameBW(bw, this.mbox);
-    writeNameBW(bw, this.txt);
+    writeNameBW(bw, this.mf);
     return bw;
   }
 
   fromReader(br) {
-    this.mbox = readNameBR(br);
-    this.txt = readNameBR(br);
+    this.mf = readNameBR(br);
     return this;
   }
 }
 
 /**
- * SOARecord
+ * CNAME Record
+ * Canonical Name Record
+ * @see https://tools.ietf.org/html/rfc1035#page-12
+ */
+
+class CNAMERecord extends RecordData {
+  constructor() {
+    super();
+    this.target = '';
+  }
+
+  getSize() {
+    return sizeName(this.target);
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.target);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.target = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * SOA Record
+ * Start of Authority Record
+ * @see https://tools.ietf.org/html/rfc1035#page-12
+ * @see https://tools.ietf.org/html/rfc2308
  */
 
 class SOARecord extends RecordData {
@@ -956,7 +726,267 @@ class SOARecord extends RecordData {
 }
 
 /**
- * TXT
+ * MB Record
+ * Mailbox Record (expiremental)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc1035
+ * @see https://tools.ietf.org/html/rfc2505
+ */
+
+class MBRecord extends RecordData {
+  constructor() {
+    super();
+    this.mb = '';
+  }
+
+  getSize() {
+    return sizeName(this.mb);
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.mb);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.mb = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * MG Record
+ * Mail Group Record (experimental)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc1035
+ * @see https://tools.ietf.org/html/rfc2505
+ */
+
+class MGRecord extends RecordData {
+  constructor() {
+    super();
+    this.mg = '';
+  }
+
+  getSize() {
+    return sizeName(this.mg);
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.mg);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.mg = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * MR Record
+ * Mail Rename Record (experimental)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc1035
+ * @see https://tools.ietf.org/html/rfc2505
+ */
+
+class MRRecord extends RecordData {
+  constructor() {
+    super();
+    this.mr = '';
+  }
+
+  getSize() {
+    return sizeName(this.mr);
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.mr);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.mr = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * NULL Record
+ * Null Record (obsolete)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc1035
+ */
+
+class NULLRecord extends UNKNOWNRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * WKS Record
+ * Well-known Services Record (deprecated)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc1035
+ * @see https://tools.ietf.org/html/rfc1123
+ * @see https://tools.ietf.org/html/rfc1127
+ */
+
+class WKSRecord extends RecordData {
+  constructor() {
+    super();
+    this.address = DUMMY4;
+    this.protocol = 0;
+    this.bitmap = DUMMY2;
+  }
+
+  getSize() {
+    return 5 + this.bitmap.length;
+  }
+
+  toWriter(bw) {
+    bw.writeBytes(this.address);
+    bw.writeU8(this.protocol);
+    bw.writeBytes(this.bitmap);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.address = br.readBytes(4);
+    this.protocol = br.readU8();
+    this.bitmap = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * PTR Record
+ * Pointer Record
+ * @see https://tools.ietf.org/html/rfc1035
+ */
+
+class PTRRecord extends RecordData {
+  constructor() {
+    super();
+    this.ptr = '';
+  }
+
+  getSize() {
+    return sizeName(this.ptr);
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.ptr);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.ptr = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * HINFO Record
+ * Host Information Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc883
+ */
+
+class HINFORecord extends RecordData {
+  constructor() {
+    super();
+    this.cpu = '';
+    this.os = '';
+  }
+
+  getSize() {
+    return 1 + this.cpu.length + 1 + this.os.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.cpu.length);
+    bw.writeString(this.cpu, 'ascii');
+    bw.writeU8(this.os.length);
+    bw.writeString(this.os, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    this.cpu = br.readString('ascii', br.readU8());
+    this.os = br.readString('ascii', br.readU8());
+    return this;
+  }
+}
+
+/**
+ * MINFO Record
+ * Mail Info Record (experimental)
+ * @see https://tools.ietf.org/html/rfc883
+ * @see https://tools.ietf.org/html/rfc1035
+ * @see https://tools.ietf.org/html/rfc2505
+ */
+
+class MINFORecord extends RecordData {
+  constructor() {
+    super();
+    this.rmail = '';
+    this.email = '';
+  }
+
+  getSize() {
+    return sizeName(this.rmail) + sizeName(this.email);
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.rmail);
+    writeNameBW(bw, this.email);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.rmail = readNameBR(br);
+    this.email = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * MX Record
+ * Mail Exchange Record
+ * @see https://tools.ietf.org/html/rfc1035#page-12
+ * @see https://tools.ietf.org/html/rfc7505
+ */
+
+class MXRecord extends RecordData {
+  constructor() {
+    super();
+    this.preference = 0;
+    this.mx = '';
+  }
+
+  getSize() {
+    return 2 + sizeName(this.mx);
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.preference);
+    writeNameBW(bw, this.mx);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.preference = br.readU16BE();
+    this.mx = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * TXT Record
+ * Text Record
+ * @see https://tools.ietf.org/html/rfc1035#page-12
  */
 
 class TXTRecord extends RecordData {
@@ -988,313 +1018,199 @@ class TXTRecord extends RecordData {
 }
 
 /**
- * SPF
+ * RP Record
+ * Responsible Person Record
+ * @see https://tools.ietf.org/html/rfc1183
  */
 
-class SPFRecord extends TXTRecord {
+class RPRecord extends RecordData {
   constructor() {
     super();
-  }
-}
-
-/**
- * AVC
- */
-
-class AVCRecord extends TXTRecord {
-  constructor() {
-    super();
-  }
-}
-
-/**
- * SRVRecord
- */
-
-class SRVRecord extends RecordData {
-  constructor() {
-    super();
-    this.priority = 0;
-    this.weight = 0;
-    this.port = 0;
-    this.target = '';
+    this.mbox = '';
+    this.txt = '';
   }
 
   getSize() {
-    return 6 + sizeName(this.target);
+    return sizeName(this.mbox) + sizeName(this.txt);
   }
 
   toWriter(bw) {
-    bw.writeU16BE(this.priority);
-    bw.writeU16BE(this.weight);
-    bw.writeU16BE(this.port);
-    writeNameBW(bw, this.target);
+    writeNameBW(bw, this.mbox);
+    writeNameBW(bw, this.txt);
     return bw;
   }
 
   fromReader(br) {
-    this.priority = br.readU16BE();
-    this.weight = br.readU16BE();
-    this.port = br.readU16BE();
-    this.target = readNameBR(br);
+    this.mbox = readNameBR(br);
+    this.txt = readNameBR(br);
     return this;
   }
 }
 
 /**
- * NAPTRRecord
+ * AFSDB Record
+ * AFS Database Record
+ * @see https://tools.ietf.org/html/rfc1183
  */
 
-class NAPTRRecord extends RecordData {
+class AFSDBRecord extends RecordData {
   constructor() {
     super();
-    this.order = 0;
-    this.preference = 0;
-    this.flags = '';
-    this.service = '';
-    this.regexp = '';
-    this.replacement = '';
+    this.subtype = 0;
+    this.hostname = '';
   }
 
   getSize() {
-    return 4
-      + 1 + this.flags.length
-      + 1 + this.service.length
-      + 1 + this.regexp.length
-      + sizeName(this.replacement);
+    return 2 + sizeName(this.hostname);
   }
 
   toWriter(bw) {
-    bw.writeU16BE(this.order);
-    bw.writeU16BE(this.preference);
-    bw.writeU8(this.flags.length);
-    bw.writeString(this.flags, 'ascii');
-    bw.writeU8(this.service.length);
-    bw.writeString(this.service, 'ascii');
-    bw.writeU8(this.regexp.length);
-    bw.writeString(this.regexp, 'ascii');
-    writeNameBW(bw, this.replacement);
+    bw.writeU16BE(this.subtype);
+    writeNameBW(bw, this.hostname);
     return bw;
   }
 
   fromReader(br) {
-    this.order = br.readU16BE();
-    this.preference = br.readU16BE();
-    this.flags = br.readString('ascii', br.readU8());
-    this.service = br.readString('ascii', br.readU8());
-    this.regexp = br.readString('ascii', br.readU8());
-    this.replacement = readNameBR(br);
+    this.subtype = br.readU16BE();
+    this.hostname = readNameBR(br);
     return this;
   }
 }
 
 /**
- * CERTRecord
+ * X25Record
+ * X25 Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc1183
  */
 
-class CERTRecord extends RecordData {
+class X25Record extends RecordData {
   constructor() {
     super();
-    this.type = 0;
-    this.keyTag = 0;
-    this.algorithm = 0;
-    this.certificate = DUMMY;
+    this.psdnAddress = '';
   }
 
   getSize() {
-    return 5 + this.certificate.length;
+    return 1 + this.psdnAddress.length;
   }
 
   toWriter(bw) {
-    bw.writeU16BE(this.type);
-    bw.writeU16BE(this.keyTag);
-    bw.writeU8(this.algorithm);
-    bw.writeBytes(this.certificate);
+    bw.writeU8(this.psdnAddress.length);
+    bw.writeString(this.psdnAddress, 'ascii');
     return bw;
   }
 
   fromReader(br) {
-    this.type = br.readU16BE();
-    this.keyTag = br.readU16BE();
-    this.algorithm = br.readU8();
-    this.certificate = br.readBytes(br.left());
+    this.psdnAddress = br.readString('ascii', br.readU8());
     return this;
   }
 }
 
 /**
- * DNAME
+ * ISDN Record
+ * ISDN Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc1183
  */
 
-class DNAMERecord extends CNAMERecord {
+class ISDNRecord extends RecordData {
   constructor() {
     super();
-  }
-}
-
-/**
- * ARecord
- */
-
-class ARecord extends RecordData {
-  constructor() {
-    super();
-    this.ip4 = DUMMY4;
+    this.address = '';
+    this.sa = '';
   }
 
   getSize() {
-    return 4;
+    return 1 + this.address.length + 1 + this.sa.length;
   }
 
   toWriter(bw) {
-    bw.writeBytes(this.ip4);
+    bw.writeU8(this.address.length);
+    bw.writeString(this.address, 'ascii');
+    bw.writeU8(this.sa.length);
+    bw.writeString(this.sa, 'ascii');
     return bw;
   }
 
   fromReader(br) {
-    this.ip4 = br.readBytes(4);
+    this.address = br.readString('ascii', br.readU8());
+    this.sa = br.readString('ascii', br.readU8());
     return this;
   }
 }
 
 /**
- * AAAARecord
+ * RT Record
+ * RT Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc1183
  */
 
-class AAAARecord extends RecordData {
-  constructor() {
-    super();
-    this.ip6 = DUMMY16;
-  }
-
-  getSize() {
-    return 16;
-  }
-
-  toWriter(bw) {
-    bw.writeBytes(this.ip6);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.ip6 = br.readBytes(16);
-    return this;
-  }
-}
-
-/**
- * PXRecord
- */
-
-class PXRecord extends RecordData {
+class RTRecord extends RecordData {
   constructor() {
     super();
     this.preference = 0;
-    this.map822 = '';
-    this.mapx400 = '';
+    this.host = '';
   }
 
   getSize() {
-    return 2 + sizeName(this.map822) + sizeName(this.mapx400);
+    return 2 + sizeName(this.host);
   }
 
   toWriter(bw) {
     bw.writeU16BE(this.preference);
-    writeNameBW(bw, this.map822);
-    writeNameBW(bw, this.mapx400);
+    writeNameBW(bw, this.host);
     return bw;
   }
 
   fromReader(br) {
     this.preference = br.readU16BE();
-    this.map822 = readNameBR(br);
-    this.mapx400 = readNameBR(br);
+    this.host = readNameBR(br);
     return this;
   }
 }
 
 /**
- * GPOSRecord
+ * NSAP Record
+ * Network Service Access Point Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc1706
  */
 
-class GPOSRecord extends RecordData {
+class NSAPRecord extends RecordData {
   constructor() {
     super();
-    this.longitude = '';
-    this.latitude = '';
-    this.altitude = '';
+    this.nsap = DUMMY;
   }
 
   getSize() {
-    return 3
-      + this.longitude.length
-      + this.latitude.length
-      + this.altitude.length;
+    return this.nsap.length;
   }
 
   toWriter(bw) {
-    bw.writeU8(this.longitude.length);
-    bw.writeString(this.longitude, 'ascii');
-    bw.writeU8(this.latitude.length);
-    bw.writeString(this.latitude, 'ascii');
-    bw.writeU8(this.altitude.length);
-    bw.writeString(this.altitude, 'ascii');
+    bw.writeBytes(this.nsap);
     return bw;
   }
 
   fromReader(br) {
-    this.longitude = br.readString('ascii', br.readU8());
-    this.latitude = br.readString('ascii', br.readU8());
-    this.altitude = br.readString('ascii', br.readU8());
+    this.nsap = br.readBytes(br.left());
     return this;
   }
 }
 
 /**
- * LOCRecord
+ * NSAPPTR Record
+ * Network Service Access Point PTR Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc1348
  */
 
-class LOCRecord extends RecordData {
+class NSAPPTRRecord extends PTRRecord {
   constructor() {
     super();
-    this.version = 0;
-    this.size = 0;
-    this.horizPre = 0;
-    this.vertPre = 0;
-    this.latitude = 0;
-    this.longitude = 0;
-    this.altitude = 0;
-  }
-
-  getSize() {
-    return 16;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.version);
-    bw.writeU8(this.size);
-    bw.writeU8(this.horizPre);
-    bw.writeU8(this.vertPre);
-    bw.writeU32BE(this.latitude);
-    bw.writeU32BE(this.longitude);
-    bw.writeU32BE(this.altitude);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.version = br.readU8();
-    this.size = br.readU8();
-    this.horizPre = br.readU8();
-    this.vertPre = br.readU8();
-    this.latitude = br.readU32BE();
-    this.longitude = br.readU32BE();
-    this.altitude = br.readU32BE();
-    return this;
   }
 }
 
 /**
- * SIGRecord
+ * SIG Record
+ * Signature Record (obsolete)
+ * @see https://tools.ietf.org/html/rfc2065
+ * @see https://tools.ietf.org/html/rfc3755
  */
 
 class SIGRecord extends RecordData {
@@ -1343,221 +1259,10 @@ class SIGRecord extends RecordData {
 }
 
 /**
- * RRSIGRecord
- */
-
-class RRSIGRecord extends SIGRecord {
-  constructor() {
-    super();
-  }
-}
-
-/**
- * NSECRecord
- */
-
-class NSECRecord extends RecordData {
-  constructor() {
-    super();
-    this.nextDomain = '';
-    this.typeBitmap = DUMMY2;
-  }
-
-  getSize() {
-    return sizeName(this.nextDomain) + this.typeBitmap.length;
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.nextDomain);
-    bw.writeBytes(this.typeBitmap);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.nextDomain = readNameBR(br);
-    this.typeBitmap = br.readBytes(br.left());
-    return this;
-  }
-}
-
-/**
- * DSRecord
- */
-
-class DSRecord extends RecordData {
-  constructor() {
-    super();
-    this.keyTag = 0;
-    this.algorithm = 0;
-    this.digestType = 0;
-    this.digest = DUMMY;
-  }
-
-  getSize() {
-    return 4 + this.digest.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.keyTag);
-    bw.writeU8(this.algorithm);
-    bw.writeU8(this.digestType);
-    bw.writeBytes(this.digest);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.keyTag = br.readU16BE();
-    this.algorithm = br.readU8();
-    this.digestType = br.readU8();
-    this.digest = br.readBytes(br.left());
-    return this;
-  }
-}
-
-/**
- * DLVRecord
- */
-
-class DLVRecord extends DSRecord {
-  constructor() {
-    super();
-  }
-}
-
-
-/**
- * CDSRecord
- */
-
-class CDSRecord extends DSRecord {
-  constructor() {
-    super();
-  }
-}
-
-/**
- * KXRecord
- */
-
-class KXRecord extends RecordData {
-  constructor() {
-    super();
-    this.preference = 0;
-    this.exchanger = '';
-  }
-
-  getSize() {
-    return 2 + sizeName(this.exchanger);
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.preference);
-    writeNameBW(bw, this.exchanger);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.preference = br.readU16BE();
-    this.exchanger = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * TARecord
- */
-
-class TARecord extends RecordData {
-  constructor() {
-    super();
-    this.keyTag = 0;
-    this.algorithm = 0;
-    this.digestType = 0;
-    this.digest = DUMMY;
-  }
-
-  getSize() {
-    return 4 + this.digest.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.keyTag);
-    bw.writeU8(this.algorithm);
-    bw.writeU8(this.digestType);
-    bw.writeBytes(this.digest);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.keyTag = br.readU16BE();
-    this.algorithm = br.readU8();
-    this.digestType = br.readU8();
-    this.digest = br.readBytes(br.left());
-    return this;
-  }
-}
-
-/**
- * TALINKRecord
- */
-
-class TALINKRecord extends RecordData {
-  constructor() {
-    super();
-    this.prevName = '';
-    this.nextName = '';
-  }
-
-  getSize() {
-    return sizeName(this.prevName) + sizeName(this.nextName);
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.prevName);
-    writeNameBW(bw, this.nextName);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.prevName = readNameBR(br);
-    this.nextName = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * SSHFPRecord
- */
-
-class SSHFPRecord extends RecordData {
-  constructor() {
-    super();
-    this.algorithm = 0;
-    this.type = 0;
-    this.fingerprint = DUMMY;
-  }
-
-  getSize() {
-    return 2 + this.fingerprint.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.algorithm);
-    bw.writeU8(this.type);
-    bw.writeBytes(this.fingerprint);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.algorithm = br.readU8();
-    this.type = br.readU8();
-    this.fingerprint = br.readBytes(br.left());
-    return this;
-  }
-}
-
-/**
- * KEY
+ * KEY Record
+ * Key Record (obsolete)
+ * @see https://tools.ietf.org/html/rfc2065
+ * @see https://tools.ietf.org/html/rfc3755
  */
 
 class KEYRecord extends RecordData {
@@ -1591,655 +1296,184 @@ class KEYRecord extends RecordData {
 }
 
 /**
- * DNSKEYRecord
+ * PX Record
+ * Pointer to X400 Mapping Information Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc2163
  */
 
-class DNSKEYRecord extends KEYRecord {
+class PXRecord extends RecordData {
   constructor() {
     super();
+    this.preference = 0;
+    this.map822 = '';
+    this.mapx400 = '';
+  }
+
+  getSize() {
+    return 2 + sizeName(this.map822) + sizeName(this.mapx400);
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.preference);
+    writeNameBW(bw, this.map822);
+    writeNameBW(bw, this.mapx400);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.preference = br.readU16BE();
+    this.map822 = readNameBR(br);
+    this.mapx400 = readNameBR(br);
+    return this;
   }
 }
 
 /**
- * CDNSKEYRecord
+ * GPOS Record
+ * Geographical Position Record (deprecated)
+ * @see https://tools.ietf.org/html/rfc1712
  */
 
-class CDNSKEYRecord extends KEYRecord {
+class GPOSRecord extends RecordData {
   constructor() {
     super();
+    this.longitude = '';
+    this.latitude = '';
+    this.altitude = '';
+  }
+
+  getSize() {
+    return 3
+      + this.longitude.length
+      + this.latitude.length
+      + this.altitude.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.longitude.length);
+    bw.writeString(this.longitude, 'ascii');
+    bw.writeU8(this.latitude.length);
+    bw.writeString(this.latitude, 'ascii');
+    bw.writeU8(this.altitude.length);
+    bw.writeString(this.altitude, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    this.longitude = br.readString('ascii', br.readU8());
+    this.latitude = br.readString('ascii', br.readU8());
+    this.altitude = br.readString('ascii', br.readU8());
+    return this;
   }
 }
 
 /**
- * RKEYRecord
+ * AAAA Record
+ * IPv6 Address Record
+ * @see https://tools.ietf.org/html/rfc3596
  */
 
-class RKEYRecord extends KEYRecord {
+class AAAARecord extends RecordData {
   constructor() {
     super();
+    this.ip6 = DUMMY16;
+  }
+
+  getSize() {
+    return 16;
+  }
+
+  toWriter(bw) {
+    bw.writeBytes(this.ip6);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.ip6 = br.readBytes(16);
+    return this;
   }
 }
 
 /**
- * NSAPPTRRecord
+ * LOC Record
+ * Location Record
+ * @see https://tools.ietf.org/html/rfc1876
  */
 
-class NSAPPTRRecord extends PTRRecord {
+class LOCRecord extends RecordData {
   constructor() {
     super();
+    this.version = 0;
+    this.size = 0;
+    this.horizPre = 0;
+    this.vertPre = 0;
+    this.latitude = 0;
+    this.longitude = 0;
+    this.altitude = 0;
+  }
+
+  getSize() {
+    return 16;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.version);
+    bw.writeU8(this.size);
+    bw.writeU8(this.horizPre);
+    bw.writeU8(this.vertPre);
+    bw.writeU32BE(this.latitude);
+    bw.writeU32BE(this.longitude);
+    bw.writeU32BE(this.altitude);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.version = br.readU8();
+    this.size = br.readU8();
+    this.horizPre = br.readU8();
+    this.vertPre = br.readU8();
+    this.latitude = br.readU32BE();
+    this.longitude = br.readU32BE();
+    this.altitude = br.readU32BE();
+    return this;
   }
 }
 
 /**
- * NSEC3
+ * NXT Record
+ * Next Domain Record (obsolete)
+ * @see https://tools.ietf.org/html/rfc2065#section-5.2
+ * @see https://tools.ietf.org/html/rfc3755
  */
 
-class NSEC3Record extends RecordData {
+class NXTRecord extends RecordData {
   constructor() {
     super();
-    this.hash = 0;
-    this.flags = 0;
-    this.iterations = 0;
-    this.salt = DUMMY;
-    this.nextDomain = DUMMY;
+    this.nextDomain = '';
     this.typeBitmap = DUMMY2;
   }
 
   getSize() {
-    return 6
-      + this.salt.length
-      + this.nextDomain.length
-      + this.typeBitmap.length;
+    return sizeName(this.nextDomain) + this.typeBitmap.length;
   }
 
   toWriter(bw) {
-    bw.writeU8(this.hash);
-    bw.writeU8(this.flags);
-    bw.writeU16BE(this.iterations);
-    bw.writeU8(this.salt.length);
-    bw.writeBytes(this.salt);
-    bw.writeU8(this.nextDomain.length);
-    bw.writeBytes(this.nextDomain);
+    writeNameBW(bw, this.nextDomain);
     bw.writeBytes(this.typeBitmap);
     return bw;
   }
 
   fromReader(br) {
-    this.hash = br.readU8();
-    this.flags = br.readU8();
-    this.iterations = br.readU16BE();
-    this.salt = br.readBytes(br.readU8());
-    this.nextDomain = br.readBytes(br.readU8());
+    this.nextDomain = readNameBR(br);
     this.typeBitmap = br.readBytes(br.left());
     return this;
   }
 }
 
 /**
- * NSEC3PARAM
- */
-
-class NSEC3PARAMRecord extends RecordData {
-  constructor() {
-    super();
-    this.hash = 0;
-    this.flags = 0;
-    this.iterations = 0;
-    this.salt = DUMMY;
-  }
-
-  getSize() {
-    return 5 + this.salt.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.hash);
-    bw.writeU8(this.flags);
-    bw.writeU16BE(this.iterations);
-    bw.writeU8(this.salt.length);
-    bw.writeBytes(this.salt);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.hash = br.readU8();
-    this.flags = br.readU8();
-    this.iterations = br.readU16BE();
-    this.salt = br.readBytes(br.readU8());
-    return this;
-  }
-}
-
-/**
- * TKEY
- */
-
-class TKEYRecord extends RecordData {
-  constructor() {
-    super();
-    this.algorithm = '';
-    this.inception = 0;
-    this.expiration = 0;
-    this.mode = 0;
-    this.error = 0;
-    this.key = DUMMY;
-    this.other = DUMMY;
-  }
-
-  getSize() {
-    let size = 0;
-    size += sizeName(this.algorithm);
-    size += 16;
-    size += this.key.length;
-    size += this.other.length;
-    return size;
-  }
-
-  toWriter(bw) {
-    writeNameBW(bw, this.algorithm);
-    bw.writeU32BE(this.inception);
-    bw.writeU32BE(this.expiration);
-    bw.writeU16BE(this.mode);
-    bw.writeU16BE(this.error);
-    bw.writeU16BE(this.key.length);
-    bw.writeBytes(this.key);
-    bw.writeU16BE(this.other.length);
-    bw.writeBytes(this.other);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.algorithm = readNameBR(br);
-    this.inception = br.readU32BE();
-    this.expiration = br.readU32BE();
-    this.mode = br.readU16BE();
-    this.error = br.readU16BE();
-    this.key = br.readBytes(br.readU16BE());
-    this.other = br.readBytes(br.readU16BE());
-    return this;
-  }
-}
-
-/**
- * RFC3597Record
- */
-
-class RFC3597Record extends ANYRecord {
-  constructor() {
-    super();
-    this.rdata = DUMMY;
-  }
-
-  getSize() {
-    return this.rdata.length;
-  }
-
-  toWriter(bw) {
-    bw.writeBytes(this.rdata);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.rdata = br.readBytes(br.left());
-    return this;
-  }
-}
-
-/**
- * URIRecord
- */
-
-class URIRecord extends RecordData {
-  constructor() {
-    super();
-    this.priority = 0;
-    this.weight = 0;
-    this.target = '';
-  }
-
-  getSize() {
-    return 4 + this.target.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.priority);
-    bw.writeU16BE(this.weight);
-    bw.writeString(this.target, 'ascii');
-    return bw;
-  }
-
-  fromReader(br) {
-    this.priority = br.readU16BE();
-    this.weight = br.readU16BE();
-    this.target = br.readString('ascii', br.left());
-    return this;
-  }
-}
-
-/**
- * DHCIDRecord
- */
-
-class DHCIDRecord extends RecordData {
-  constructor() {
-    super();
-    this.digest = DUMMY;
-  }
-
-  getSize() {
-    return this.digest.length;
-  }
-
-  toWriter(bw) {
-    bw.writeBytes(this.digest);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.digest = br.readBytes(br.left());
-    return this;
-  }
-}
-
-/**
- * TLSARecord
- */
-
-class TLSARecord extends RecordData {
-  constructor() {
-    super();
-    this.usage = 0;
-    this.selector = 0;
-    this.matchingType = 0;
-    this.certificate = DUMMY;
-  }
-
-  getSize() {
-    return 3 + this.certificate.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.usage);
-    bw.writeU8(this.selector);
-    bw.writeU8(this.matchingType);
-    bw.writeBytes(this.certificate);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.usage = br.readU8();
-    this.selector = br.readU8();
-    this.matchingType = br.readU8();
-    this.certificate = br.readBytes(br.left());
-    return this;
-  }
-}
-
-
-/**
- * SMIMEARecord
- */
-
-class SMIMEARecord extends TLSARecord {
-  constructor() {
-    super();
-  }
-}
-
-/**
- * HIPRecord
- */
-
-class HIPRecord extends RecordData {
-  constructor() {
-    super();
-    this.algorithm = 0;
-    this.hit = DUMMY;
-    this.publicKey = DUMMY;
-    this.rendezvousServers = [];
-  }
-
-  getSize() {
-    let size = 4;
-    size += this.hit.length;
-    size += this.publicKey.length;
-    for (const name of this.rendezvousServers)
-      size += sizeName(name);
-    return size;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.hit.length);
-    bw.writeU8(this.algorithm);
-    bw.writeU16BE(this.publicKey.length);
-    bw.writeBytes(this.hit);
-    bw.writeBytes(this.publicKey);
-    for (const name of this.rendezvousServers)
-      writeNameBW(bw, name);
-    return bw;
-  }
-
-  fromReader(br) {
-    const hitLen = br.readU8();
-
-    this.algorithm = br.readU8();
-
-    const keyLen = br.readU16BE();
-
-    this.hit = br.readBytes(hitLen);
-    this.publicKey = br.readBytes(keyLen);
-
-    while (br.left())
-      this.rendezvousServers.push(readNameBR(br));
-
-    return this;
-  }
-}
-
-/**
- * NINFO
- */
-
-class NINFORecord extends RecordData {
-  constructor() {
-    super();
-    this.zsData = [];
-  }
-
-  getSize() {
-    let size = 0;
-    for (const zs of this.zsData)
-      size += 1 + zs.length;
-    return size;
-  }
-
-  toWriter(bw) {
-    for (const zs of this.zsData) {
-      bw.writeU8(zs.length);
-      bw.writeString(zs, 'ascii');
-    }
-    return bw;
-  }
-
-  fromReader(br) {
-    while (br.left())
-      this.zsData.push(br.readString('ascii', br.readU8()));
-    return this;
-  }
-}
-
-/**
- * NID
- */
-
-class NIDRecord extends RecordData {
-  constructor() {
-    super();
-    this.preference = 0;
-    this.nodeID = DUMMY8;
-  }
-
-  getSize() {
-    return 10;
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.preference);
-    bw.writeBytes(this.nodeID);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.preference = br.readU16BE();
-    this.nodeID = br.readBytes(8);
-    return this;
-  }
-}
-
-/**
- * L32Record
- */
-
-class L32Record extends RecordData {
-  constructor() {
-    super();
-    this.preference = 0;
-    this.locator32 = DUMMY4;
-  }
-
-  getSize() {
-    return 6;
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.preference);
-    bw.writeBytes(this.locator32);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.preference = br.readU16BE();
-    this.locator32 = br.readBytes(4);
-    return this;
-  }
-}
-
-/**
- * L64Record
- */
-
-class L64Record extends RecordData {
-  constructor() {
-    super();
-    this.preference = 0;
-    this.locator64 = DUMMY8;
-  }
-
-  getSize() {
-    return 10;
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.preference);
-    bw.writeBytes(this.locator64);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.preference = br.readU16BE();
-    this.locator64 = br.readBytes(8);
-    return this;
-  }
-}
-
-/**
- * LPRecord
- */
-
-class LPRecord extends RecordData {
-  constructor() {
-    super();
-    this.preference = 0;
-    this.fqdn = '';
-  }
-
-  getSize() {
-    return 2 + sizeName(this.fqdn);
-  }
-
-  toWriter(bw) {
-    bw.writeU16BE(this.preference);
-    writeNameBW(bw, this.fqdn);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.preference = br.readU16BE();
-    this.fqdn = readNameBR(br);
-    return this;
-  }
-}
-
-/**
- * EUI48
- */
-
-class EUI48Record extends RecordData {
-  constructor() {
-    super();
-    this.address = DUMMY6;
-  }
-
-  getSize() {
-    return 6;
-  }
-
-  toWriter(bw) {
-    bw.writeBytes(this.address);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.address = br.readBytes(6);
-    return this;
-  }
-}
-
-/**
- * EUI64
- */
-
-class EUI64Record extends RecordData {
-  constructor() {
-    super();
-    this.address = DUMMY8;
-  }
-
-  getSize() {
-    return 8;
-  }
-
-  toWriter(bw) {
-    bw.writeBytes(this.address);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.address = br.readBytes(8);
-    return this;
-  }
-}
-
-/**
- * CAA
- */
-
-class CAARecord extends RecordData {
-  constructor() {
-    super();
-    this.flag = 0;
-    this.tag = '';
-    this.value = '';
-  }
-
-  getSize() {
-    return 1 + 1 + this.tag.length + this.value.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.flag);
-    bw.writeU8(this.tag.length);
-    bw.writeString(this.tag, 'ascii');
-    bw.writeString(this.value, 'ascii');
-    return bw;
-  }
-
-  fromReader(br) {
-    this.flag = br.readU8();
-    this.tag = br.readString('ascii', br.readU8());
-    this.value = br.readString('ascii', br.left());
-    return this;
-  }
-}
-
-/**
- * UID
- */
-
-class UIDRecord extends RecordData {
-  constructor() {
-    super();
-    this.uid = 0;
-  }
-
-  getSize() {
-    return 4;
-  }
-
-  toWriter(bw) {
-    bw.writeU32BE(this.uid);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.uid = br.readU32BE();
-    return this;
-  }
-}
-
-/**
- * GID
- */
-
-class GIDRecord extends RecordData {
-  constructor() {
-    super();
-    this.gid = 0;
-  }
-
-  getSize() {
-    return 4;
-  }
-
-  toWriter(bw) {
-    bw.writeU32BE(this.gid);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.gid = br.readU32BE();
-    return this;
-  }
-}
-
-/**
- * UINFO
- */
-
-class UINFORecord extends RecordData {
-  constructor() {
-    super();
-    this.uinfo = '';
-  }
-
-  getSize() {
-    return 1 + this.uinfo.length;
-  }
-
-  toWriter(bw) {
-    bw.writeU8(this.uinfo.length);
-    bw.writeString(this.uinfo, 'ascii');
-    return bw;
-  }
-
-  fromReader(br) {
-    this.uinfo = br.readString('ascii', br.readU8());
-    return this;
-  }
-}
-
-/**
- * EID
+ * EID Record
+ * Endpoint Identifier Record (not-in-use)
+ * @see http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt
  */
 
 class EIDRecord extends RecordData {
@@ -2264,7 +1498,9 @@ class EIDRecord extends RecordData {
 }
 
 /**
- * NIMLOCRecord
+ * NIMLOC Record
+ * Nimrod Locator Record (not-in-use)
+ * @see http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt
  */
 
 class NIMLOCRecord extends RecordData {
@@ -2289,157 +1525,235 @@ class NIMLOCRecord extends RecordData {
 }
 
 /**
- * OPENPGPKEYRecord
+ * SRV Record
+ * Service Locator Record
+ * @see https://tools.ietf.org/html/rfc2782
  */
 
-class OPENPGPKEYRecord extends RecordData {
+class SRVRecord extends RecordData {
   constructor() {
     super();
-    this.publicKey = DUMMY;
+    this.priority = 0;
+    this.weight = 0;
+    this.port = 0;
+    this.target = '';
   }
 
   getSize() {
-    return this.publicKey.length;
+    return 6 + sizeName(this.target);
   }
 
   toWriter(bw) {
-    bw.writeBytes(this.publicKey);
+    bw.writeU16BE(this.priority);
+    bw.writeU16BE(this.weight);
+    bw.writeU16BE(this.port);
+    writeNameBW(bw, this.target);
     return bw;
   }
 
   fromReader(br) {
-    this.publicKey = br.readBytes(br.left());
+    this.priority = br.readU16BE();
+    this.weight = br.readU16BE();
+    this.port = br.readU16BE();
+    this.target = readNameBR(br);
     return this;
   }
 }
 
 /**
- * CSYNCRecord
+ * ATMA Record
+ * Asynchronous Transfer Mode Record (not-in-use)
+ * @see http://www.broadband-forum.org/ftp/pub/approved-specs/af-dans-0152.000.pdf
  */
 
-class CSYNCRecord extends RecordData {
+class ATMARecord extends RecordData {
   constructor() {
     super();
-    this.serial = 0;
-    this.flags = 0;
-    this.typeBitmap = DUMMY2;
+    this.format = 0;
+    this.address = DUMMY;
   }
 
   getSize() {
-    return 6 + this.typeBitmap.length;
+    return 1 + this.address.length;
   }
 
   toWriter(bw) {
-    bw.writeU32BE(this.serial);
-    bw.writeU16BE(this.flags);
-    bw.writeBytes(this.publicKey);
+    bw.writeU8(this.format);
+    bw.writeBytes(this.address);
     return bw;
   }
 
   fromReader(br) {
-    this.serial = br.readU32BE();
-    this.flags = br.readU16BE();
-    this.publicKey = br.readBytes(br.left());
+    this.format = br.readU8();
+    this.address = br.readBytes(br.left());
     return this;
   }
 }
 
 /**
- * TSIGRecord
- * https://tools.ietf.org/html/rfc2845
+ * NAPTR Record
+ * Naming Authority Pointer Record
+ * @see https://tools.ietf.org/html/rfc3403
  */
 
-class TSIGRecord extends RecordData {
+class NAPTRRecord extends RecordData {
   constructor() {
     super();
-    this.algorithm = '';
-    this.timeSigned = 0;
-    this.fudge = 0;
-    this.mac = DUMMY;
-    this.origID = 0;
-    this.error = 0;
-    this.other = DUMMY;
+    this.order = 0;
+    this.preference = 0;
+    this.flags = '';
+    this.service = '';
+    this.regexp = '';
+    this.replacement = '';
   }
 
   getSize() {
-    let size = 16;
-    size += sizeName(this.algorithm);
-    size += this.mac.length;
-    size += this.other.length;
-    return size;
+    return 4
+      + 1 + this.flags.length
+      + 1 + this.service.length
+      + 1 + this.regexp.length
+      + sizeName(this.replacement);
   }
 
   toWriter(bw) {
-    writeNameBW(bw, this.algorithm);
-    bw.writeU16BE((this.timeSigned / 0x100000000) >>> 0);
-    bw.writeU32BE(this.timeSigned >>> 0);
-    bw.writeU16BE(this.fudge);
-    bw.writeU16BE(this.mac.length);
-    bw.writeBytes(this.mac);
-    bw.writeU16BE(this.origID);
-    bw.writeU16BE(this.error);
-    bw.writeU16BE(this.other.length);
-    bw.writeBytes(this.other);
+    bw.writeU16BE(this.order);
+    bw.writeU16BE(this.preference);
+    bw.writeU8(this.flags.length);
+    bw.writeString(this.flags, 'ascii');
+    bw.writeU8(this.service.length);
+    bw.writeString(this.service, 'ascii');
+    bw.writeU8(this.regexp.length);
+    bw.writeString(this.regexp, 'ascii');
+    writeNameBW(bw, this.replacement);
     return bw;
   }
 
   fromReader(br) {
-    this.algorithm = readNameBR(br);
-    this.timeSigned = br.readU16BE() * 0x100000000 + br.readU32BE();
-    this.fudge = br.readU16BE();
-    this.mac = br.readBytes(br.readU16BE());
-    this.origID = br.readU16BE();
-    this.error = br.readU16BE();
-    this.other = br.readBytes(br.readU16BE());
+    this.order = br.readU16BE();
+    this.preference = br.readU16BE();
+    this.flags = br.readString('ascii', br.readU8());
+    this.service = br.readString('ascii', br.readU8());
+    this.regexp = br.readString('ascii', br.readU8());
+    this.replacement = readNameBR(br);
     return this;
   }
 }
 
 /**
- * ISDNRecord
- * https://tools.ietf.org/html/rfc1183
+ * KX Record
+ * Key Exchanger Record
+ * @see https://tools.ietf.org/html/rfc2230
  */
 
-class ISDNRecord extends RecordData {
+class KXRecord extends RecordData {
   constructor() {
     super();
-    this.address = '';
-    this.sa = '';
+    this.preference = 0;
+    this.exchanger = '';
   }
 
   getSize() {
-    return 1 + this.address.length + 1 + this.sa.length;
+    return 2 + sizeName(this.exchanger);
   }
 
   toWriter(bw) {
-    bw.writeU8(this.address.length);
-    bw.writeString(this.address, 'ascii');
-    bw.writeU8(this.sa.length);
-    bw.writeString(this.sa, 'ascii');
+    bw.writeU16BE(this.preference);
+    writeNameBW(bw, this.exchanger);
     return bw;
   }
 
   fromReader(br) {
-    this.address = br.readString('ascii', br.readU8());
-    this.sa = br.readString('ascii', br.readU8());
+    this.preference = br.readU16BE();
+    this.exchanger = readNameBR(br);
     return this;
   }
 }
 
 /**
- * NULL
- * https://tools.ietf.org/html/rfc1035
+ * CERT Record
+ * Certificate Record
+ * @see https://tools.ietf.org/html/rfc4398
  */
 
-class NULLRecord extends ANYRecord {
+class CERTRecord extends RecordData {
+  constructor() {
+    super();
+    this.type = 0;
+    this.keyTag = 0;
+    this.algorithm = 0;
+    this.certificate = DUMMY;
+  }
+
+  getSize() {
+    return 5 + this.certificate.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.type);
+    bw.writeU16BE(this.keyTag);
+    bw.writeU8(this.algorithm);
+    bw.writeBytes(this.certificate);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.type = br.readU16BE();
+    this.keyTag = br.readU16BE();
+    this.algorithm = br.readU8();
+    this.certificate = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * A6Record
+ * A IPv6 Record (historic)
+ * @see https://tools.ietf.org/html/rfc2874#section-3.1.1
+ * @see https://tools.ietf.org/html/rfc6563
+ */
+
+class A6Record extends RecordData {
+  constructor() {
+    super();
+    this.address = DUMMY16;
+    this.prefix = '';
+  }
+
+  getSize() {
+    return 17 + this.prefix.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.prefix.length);
+    bw.writeBytes(this.address);
+    bw.writeString(this.prefix, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    const prefixLen = br.readU8();
+    this.address = br.readBytes(16);
+    this.prefix = br.readString('ascii', prefixLen);
+    return this;
+  }
+}
+
+/**
+ * DNAME Record
+ * Delegation Name Record
+ * @see https://tools.ietf.org/html/rfc6672
+ */
+
+class DNAMERecord extends CNAMERecord {
   constructor() {
     super();
   }
 }
 
 /**
- * OPTRecord
- * https://tools.ietf.org/html/rfc6891#section-6.1
+ * OPT Record
+ * Option Record (EDNS) (pseudo-record)
+ * @see https://tools.ietf.org/html/rfc6891#section-6.1
  */
 
 class OPTRecord extends RecordData {
@@ -2468,8 +1782,9 @@ class OPTRecord extends RecordData {
 }
 
 /**
- * APLRecord
- * https://tools.ietf.org/html/rfc3123
+ * APL Record
+ * Address Prefix List Record (not-in-use)
+ * @see https://tools.ietf.org/html/rfc3123
  */
 
 class APLRecord extends RecordData {
@@ -2509,108 +1824,78 @@ class APLRecord extends RecordData {
 }
 
 /**
- * NXTRecord
- * https://tools.ietf.org/html/rfc2065#section-5.2
+ * DS Record
+ * Delegation Signer
+ * @see https://tools.ietf.org/html/rfc4034
  */
 
-class NXTRecord extends RecordData {
+class DSRecord extends RecordData {
   constructor() {
     super();
-    this.nextDomain = '';
-    this.typeBitmap = DUMMY2;
+    this.keyTag = 0;
+    this.algorithm = 0;
+    this.digestType = 0;
+    this.digest = DUMMY;
   }
 
   getSize() {
-    return sizeName(this.nextDomain) + this.typeBitmap.length;
+    return 4 + this.digest.length;
   }
 
   toWriter(bw) {
-    writeNameBW(bw, this.nextDomain);
-    bw.writeBytes(this.typeBitmap);
+    bw.writeU16BE(this.keyTag);
+    bw.writeU8(this.algorithm);
+    bw.writeU8(this.digestType);
+    bw.writeBytes(this.digest);
     return bw;
   }
 
   fromReader(br) {
-    this.nextDomain = readNameBR(br);
-    this.typeBitmap = br.readBytes(br.left());
+    this.keyTag = br.readU16BE();
+    this.algorithm = br.readU8();
+    this.digestType = br.readU8();
+    this.digest = br.readBytes(br.left());
     return this;
   }
 }
 
 /**
- * ATMARecord
- * http://www.broadband-forum.org/ftp/pub/approved-specs/af-dans-0152.000.pdf
+ * SSHFP Record
+ * SSH Finger Print Record
+ * @see https://tools.ietf.org/html/rfc4255
  */
 
-class ATMARecord extends RecordData {
+class SSHFPRecord extends RecordData {
   constructor() {
     super();
-    this.format = 0;
-    this.address = DUMMY;
+    this.algorithm = 0;
+    this.type = 0;
+    this.fingerprint = DUMMY;
   }
 
   getSize() {
-    return 1 + this.address.length;
+    return 2 + this.fingerprint.length;
   }
 
   toWriter(bw) {
-    bw.writeU8(this.format);
-    bw.writeBytes(this.address);
+    bw.writeU8(this.algorithm);
+    bw.writeU8(this.type);
+    bw.writeBytes(this.fingerprint);
     return bw;
   }
 
   fromReader(br) {
-    this.format = br.readU8();
-    this.address = br.readBytes(br.left());
+    this.algorithm = br.readU8();
+    this.type = br.readU8();
+    this.fingerprint = br.readBytes(br.left());
     return this;
   }
 }
 
 /**
- * UNSPEC
- */
-
-class UNSPECRecord extends ANYRecord {
-  constructor() {
-    super();
-  }
-}
-
-/**
- * WKSRecord
- * https://tools.ietf.org/html/rfc883
- */
-
-class WKSRecord extends RecordData {
-  constructor() {
-    super();
-    this.address = DUMMY4;
-    this.protocol = 0;
-    this.bitmap = DUMMY2;
-  }
-
-  getSize() {
-    return 5 + this.bitmap.length;
-  }
-
-  toWriter(bw) {
-    bw.writeBytes(this.address);
-    bw.writeU8(this.protocol);
-    bw.writeBytes(this.bitmap);
-    return bw;
-  }
-
-  fromReader(br) {
-    this.address = br.readBytes(4);
-    this.protocol = br.readU8();
-    this.bitmap = br.readBytes(br.left());
-    return this;
-  }
-}
-
-/**
- * IPSECKEYRecord
- * https://tools.ietf.org/html/rfc4025
+ * IPSECKEY Record
+ * IPsec Key Record
+ * @see https://tools.ietf.org/html/rfc4025
  */
 
 class IPSECKEYRecord extends RecordData {
@@ -2704,59 +1989,951 @@ class IPSECKEYRecord extends RecordData {
 }
 
 /**
- * NSAPRecord
- * https://tools.ietf.org/html/rfc1706
+ * RRSIG Record
+ * DNSSEC Signature Record
+ * @see https://tools.ietf.org/html/rfc4034
  */
 
-class NSAPRecord extends RecordData {
+class RRSIGRecord extends SIGRecord {
   constructor() {
     super();
-    this.nsap = DUMMY;
+  }
+}
+
+/**
+ * NSEC Record
+ * Next Secure Record
+ * @see https://tools.ietf.org/html/rfc4034
+ */
+
+class NSECRecord extends RecordData {
+  constructor() {
+    super();
+    this.nextDomain = '';
+    this.typeBitmap = DUMMY2;
   }
 
   getSize() {
-    return this.nsap.length;
+    return sizeName(this.nextDomain) + this.typeBitmap.length;
   }
 
   toWriter(bw) {
-    bw.writeBytes(this.nsap);
+    writeNameBW(bw, this.nextDomain);
+    bw.writeBytes(this.typeBitmap);
     return bw;
   }
 
   fromReader(br) {
-    this.nsap = br.readBytes(br.left());
+    this.nextDomain = readNameBR(br);
+    this.typeBitmap = br.readBytes(br.left());
     return this;
   }
 }
 
 /**
- * A6Record
- * https://tools.ietf.org/html/rfc2874#section-3.1.1
+ * DNSKEY Record
+ * DNS Key Record
+ * @see https://tools.ietf.org/html/rfc4034
  */
 
-class A6Record extends RecordData {
+class DNSKEYRecord extends KEYRecord {
   constructor() {
     super();
-    this.address = DUMMY16;
-    this.prefix = '';
+  }
+}
+
+/**
+ * DHCID Record
+ * DHCP Identifier Record
+ * @see https://tools.ietf.org/html/rfc4701
+ */
+
+class DHCIDRecord extends RecordData {
+  constructor() {
+    super();
+    this.digest = DUMMY;
   }
 
   getSize() {
-    return 17 + this.prefix.length;
+    return this.digest.length;
   }
 
   toWriter(bw) {
-    bw.writeU8(this.prefix.length);
-    bw.writeBytes(this.address);
-    bw.writeString(this.prefix, 'ascii');
+    bw.writeBytes(this.digest);
     return bw;
   }
 
   fromReader(br) {
-    const prefixLen = br.readU8();
-    this.address = br.readBytes(16);
-    this.prefix = br.readString('ascii', prefixLen);
+    this.digest = br.readBytes(br.left());
     return this;
+  }
+}
+
+/**
+ * NSEC3Record
+ * Next Secure Record (v3)
+ * @see https://tools.ietf.org/html/rfc5155
+ */
+
+class NSEC3Record extends RecordData {
+  constructor() {
+    super();
+    this.hash = 0;
+    this.flags = 0;
+    this.iterations = 0;
+    this.salt = DUMMY;
+    this.nextDomain = DUMMY;
+    this.typeBitmap = DUMMY2;
+  }
+
+  getSize() {
+    return 6
+      + this.salt.length
+      + this.nextDomain.length
+      + this.typeBitmap.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.hash);
+    bw.writeU8(this.flags);
+    bw.writeU16BE(this.iterations);
+    bw.writeU8(this.salt.length);
+    bw.writeBytes(this.salt);
+    bw.writeU8(this.nextDomain.length);
+    bw.writeBytes(this.nextDomain);
+    bw.writeBytes(this.typeBitmap);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.hash = br.readU8();
+    this.flags = br.readU8();
+    this.iterations = br.readU16BE();
+    this.salt = br.readBytes(br.readU8());
+    this.nextDomain = br.readBytes(br.readU8());
+    this.typeBitmap = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * NSEC3PARAM Record
+ * NSEC3 Params Record
+ * @see https://tools.ietf.org/html/rfc5155
+ */
+
+class NSEC3PARAMRecord extends RecordData {
+  constructor() {
+    super();
+    this.hash = 0;
+    this.flags = 0;
+    this.iterations = 0;
+    this.salt = DUMMY;
+  }
+
+  getSize() {
+    return 5 + this.salt.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.hash);
+    bw.writeU8(this.flags);
+    bw.writeU16BE(this.iterations);
+    bw.writeU8(this.salt.length);
+    bw.writeBytes(this.salt);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.hash = br.readU8();
+    this.flags = br.readU8();
+    this.iterations = br.readU16BE();
+    this.salt = br.readBytes(br.readU8());
+    return this;
+  }
+}
+
+/**
+ * TLSA Record
+ * TLSA Certificate Association Record
+ * @see https://tools.ietf.org/html/rfc6698
+ */
+
+class TLSARecord extends RecordData {
+  constructor() {
+    super();
+    this.usage = 0;
+    this.selector = 0;
+    this.matchingType = 0;
+    this.certificate = DUMMY;
+  }
+
+  getSize() {
+    return 3 + this.certificate.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.usage);
+    bw.writeU8(this.selector);
+    bw.writeU8(this.matchingType);
+    bw.writeBytes(this.certificate);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.usage = br.readU8();
+    this.selector = br.readU8();
+    this.matchingType = br.readU8();
+    this.certificate = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * SMIMEA Record
+ * S/MIME Certificate Association Record
+ * @see https://tools.ietf.org/html/rfc8162
+ */
+
+class SMIMEARecord extends TLSARecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * HIP Record
+ * Host Identity Protocol Record
+ * @see https://tools.ietf.org/html/rfc8005
+ */
+
+class HIPRecord extends RecordData {
+  constructor() {
+    super();
+    this.algorithm = 0;
+    this.hit = DUMMY;
+    this.publicKey = DUMMY;
+    this.rendezvousServers = [];
+  }
+
+  getSize() {
+    let size = 4;
+    size += this.hit.length;
+    size += this.publicKey.length;
+    for (const name of this.rendezvousServers)
+      size += sizeName(name);
+    return size;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.hit.length);
+    bw.writeU8(this.algorithm);
+    bw.writeU16BE(this.publicKey.length);
+    bw.writeBytes(this.hit);
+    bw.writeBytes(this.publicKey);
+    for (const name of this.rendezvousServers)
+      writeNameBW(bw, name);
+    return bw;
+  }
+
+  fromReader(br) {
+    const hitLen = br.readU8();
+
+    this.algorithm = br.readU8();
+
+    const keyLen = br.readU16BE();
+
+    this.hit = br.readBytes(hitLen);
+    this.publicKey = br.readBytes(keyLen);
+
+    while (br.left())
+      this.rendezvousServers.push(readNameBR(br));
+
+    return this;
+  }
+}
+
+/**
+ * NINFO Record
+ * Zone Status Information (proposed)
+ * @see https://www.iana.org/assignments/dns-parameters/NINFO/ninfo-completed-template
+ */
+
+class NINFORecord extends RecordData {
+  constructor() {
+    super();
+    this.zsData = [];
+  }
+
+  getSize() {
+    let size = 0;
+    for (const zs of this.zsData)
+      size += 1 + zs.length;
+    return size;
+  }
+
+  toWriter(bw) {
+    for (const zs of this.zsData) {
+      bw.writeU8(zs.length);
+      bw.writeString(zs, 'ascii');
+    }
+    return bw;
+  }
+
+  fromReader(br) {
+    while (br.left())
+      this.zsData.push(br.readString('ascii', br.readU8()));
+    return this;
+  }
+}
+
+/**
+ * RKEY Record
+ * R Key Record (proposed)
+ * @see https://www.iana.org/assignments/dns-parameters/RKEY/rkey-completed-template
+ */
+
+class RKEYRecord extends KEYRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * TALINK Record
+ * Trust Authorities Link Record (proposed)
+ * @see https://www.iana.org/assignments/dns-parameters/TALINK/talink-completed-template
+ */
+
+class TALINKRecord extends RecordData {
+  constructor() {
+    super();
+    this.prevName = '';
+    this.nextName = '';
+  }
+
+  getSize() {
+    return sizeName(this.prevName) + sizeName(this.nextName);
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.prevName);
+    writeNameBW(bw, this.nextName);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.prevName = readNameBR(br);
+    this.nextName = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * CDS Record
+ * Child DS Record
+ * @see https://tools.ietf.org/html/rfc7344
+ */
+
+class CDSRecord extends DSRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * CDNSKEY Record
+ * Child DNSKEY Record
+ * @see https://tools.ietf.org/html/rfc7344
+ */
+
+class CDNSKEYRecord extends KEYRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * OPENPGPKEY Record
+ * OpenPGP Public Key Record
+ * @see https://tools.ietf.org/html/rfc7929
+ */
+
+class OPENPGPKEYRecord extends RecordData {
+  constructor() {
+    super();
+    this.publicKey = DUMMY;
+  }
+
+  getSize() {
+    return this.publicKey.length;
+  }
+
+  toWriter(bw) {
+    bw.writeBytes(this.publicKey);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.publicKey = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * CSYNC Record
+ * Child Synchronization Record
+ * @see https://tools.ietf.org/html/rfc7477
+ */
+
+class CSYNCRecord extends RecordData {
+  constructor() {
+    super();
+    this.serial = 0;
+    this.flags = 0;
+    this.typeBitmap = DUMMY2;
+  }
+
+  getSize() {
+    return 6 + this.typeBitmap.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU32BE(this.serial);
+    bw.writeU16BE(this.flags);
+    bw.writeBytes(this.publicKey);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.serial = br.readU32BE();
+    this.flags = br.readU16BE();
+    this.publicKey = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * SPF Record
+ * Sender Policy Framework Record (obsolete)
+ * @see https://tools.ietf.org/html/rfc4408
+ * @see https://tools.ietf.org/html/rfc7208
+ */
+
+class SPFRecord extends TXTRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * UINFO Record
+ * UINFO Record (obsolete)
+ * (No Documentation)
+ */
+
+class UINFORecord extends RecordData {
+  constructor() {
+    super();
+    this.uinfo = '';
+  }
+
+  getSize() {
+    return 1 + this.uinfo.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.uinfo.length);
+    bw.writeString(this.uinfo, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    this.uinfo = br.readString('ascii', br.readU8());
+    return this;
+  }
+}
+
+/**
+ * UID Record
+ * UID Record (obsolete)
+ * (No Documentation)
+ */
+
+class UIDRecord extends RecordData {
+  constructor() {
+    super();
+    this.uid = 0;
+  }
+
+  getSize() {
+    return 4;
+  }
+
+  toWriter(bw) {
+    bw.writeU32BE(this.uid);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.uid = br.readU32BE();
+    return this;
+  }
+}
+
+/**
+ * GID Record
+ * GID Record (obsolete)
+ * (No Documentation)
+ */
+
+class GIDRecord extends RecordData {
+  constructor() {
+    super();
+    this.gid = 0;
+  }
+
+  getSize() {
+    return 4;
+  }
+
+  toWriter(bw) {
+    bw.writeU32BE(this.gid);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.gid = br.readU32BE();
+    return this;
+  }
+}
+
+/**
+ * UNSPEC Record
+ * UNSPEC Record (obsolete)
+ * (No Documentation)
+ */
+
+class UNSPECRecord extends UNKNOWNRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * NID Record
+ * Node Identifier Record
+ * @see https://tools.ietf.org/html/rfc6742
+ */
+
+class NIDRecord extends RecordData {
+  constructor() {
+    super();
+    this.preference = 0;
+    this.nodeID = DUMMY8;
+  }
+
+  getSize() {
+    return 10;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.preference);
+    bw.writeBytes(this.nodeID);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.preference = br.readU16BE();
+    this.nodeID = br.readBytes(8);
+    return this;
+  }
+}
+
+/**
+ * L32Record
+ * Locator 32 Record
+ * @see https://tools.ietf.org/html/rfc6742
+ */
+
+class L32Record extends RecordData {
+  constructor() {
+    super();
+    this.preference = 0;
+    this.locator32 = DUMMY4;
+  }
+
+  getSize() {
+    return 6;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.preference);
+    bw.writeBytes(this.locator32);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.preference = br.readU16BE();
+    this.locator32 = br.readBytes(4);
+    return this;
+  }
+}
+
+/**
+ * L64Record
+ * Locator 64 Record
+ * @see https://tools.ietf.org/html/rfc6742
+ */
+
+class L64Record extends RecordData {
+  constructor() {
+    super();
+    this.preference = 0;
+    this.locator64 = DUMMY8;
+  }
+
+  getSize() {
+    return 10;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.preference);
+    bw.writeBytes(this.locator64);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.preference = br.readU16BE();
+    this.locator64 = br.readBytes(8);
+    return this;
+  }
+}
+
+/**
+ * LP Record
+ * Locator Pointer Record
+ * @see https://tools.ietf.org/html/rfc6742
+ */
+
+class LPRecord extends RecordData {
+  constructor() {
+    super();
+    this.preference = 0;
+    this.fqdn = '';
+  }
+
+  getSize() {
+    return 2 + sizeName(this.fqdn);
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.preference);
+    writeNameBW(bw, this.fqdn);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.preference = br.readU16BE();
+    this.fqdn = readNameBR(br);
+    return this;
+  }
+}
+
+/**
+ * EUI48Record
+ * Extended Unique Identifier Record (48 bit)
+ * @see https://tools.ietf.org/html/rfc7043
+ */
+
+class EUI48Record extends RecordData {
+  constructor() {
+    super();
+    this.address = DUMMY6;
+  }
+
+  getSize() {
+    return 6;
+  }
+
+  toWriter(bw) {
+    bw.writeBytes(this.address);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.address = br.readBytes(6);
+    return this;
+  }
+}
+
+/**
+ * EUI64Record
+ * Extended Unique Identifier Record (64 bit)
+ * @see https://tools.ietf.org/html/rfc7043
+ */
+
+class EUI64Record extends RecordData {
+  constructor() {
+    super();
+    this.address = DUMMY8;
+  }
+
+  getSize() {
+    return 8;
+  }
+
+  toWriter(bw) {
+    bw.writeBytes(this.address);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.address = br.readBytes(8);
+    return this;
+  }
+}
+
+/**
+ * URI Record
+ * Uniform Resource Identifier Record
+ * @see https://tools.ietf.org/html/rfc7553
+ */
+
+class URIRecord extends RecordData {
+  constructor() {
+    super();
+    this.priority = 0;
+    this.weight = 0;
+    this.target = '';
+  }
+
+  getSize() {
+    return 4 + this.target.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.priority);
+    bw.writeU16BE(this.weight);
+    bw.writeString(this.target, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    this.priority = br.readU16BE();
+    this.weight = br.readU16BE();
+    this.target = br.readString('ascii', br.left());
+    return this;
+  }
+}
+
+/**
+ * CAA Record
+ * Certification Authority Authorization Record
+ * @see https://tools.ietf.org/html/rfc6844
+ */
+
+class CAARecord extends RecordData {
+  constructor() {
+    super();
+    this.flag = 0;
+    this.tag = '';
+    this.value = '';
+  }
+
+  getSize() {
+    return 1 + 1 + this.tag.length + this.value.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.flag);
+    bw.writeU8(this.tag.length);
+    bw.writeString(this.tag, 'ascii');
+    bw.writeString(this.value, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    this.flag = br.readU8();
+    this.tag = br.readString('ascii', br.readU8());
+    this.value = br.readString('ascii', br.left());
+    return this;
+  }
+}
+
+/**
+ * AVC Record
+ * Application Visibility and Control (proposed)
+ * @see https://www.iana.org/assignments/dns-parameters/AVC/avc-completed-template
+ */
+
+class AVCRecord extends TXTRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * TKEY Record
+ * Transaction Key Record
+ * @see https://tools.ietf.org/html/rfc2930
+ */
+
+class TKEYRecord extends RecordData {
+  constructor() {
+    super();
+    this.algorithm = '';
+    this.inception = 0;
+    this.expiration = 0;
+    this.mode = 0;
+    this.error = 0;
+    this.key = DUMMY;
+    this.other = DUMMY;
+  }
+
+  getSize() {
+    let size = 0;
+    size += sizeName(this.algorithm);
+    size += 16;
+    size += this.key.length;
+    size += this.other.length;
+    return size;
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.algorithm);
+    bw.writeU32BE(this.inception);
+    bw.writeU32BE(this.expiration);
+    bw.writeU16BE(this.mode);
+    bw.writeU16BE(this.error);
+    bw.writeU16BE(this.key.length);
+    bw.writeBytes(this.key);
+    bw.writeU16BE(this.other.length);
+    bw.writeBytes(this.other);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.algorithm = readNameBR(br);
+    this.inception = br.readU32BE();
+    this.expiration = br.readU32BE();
+    this.mode = br.readU16BE();
+    this.error = br.readU16BE();
+    this.key = br.readBytes(br.readU16BE());
+    this.other = br.readBytes(br.readU16BE());
+    return this;
+  }
+}
+
+/**
+ * TSIG Record
+ * Transaction Signature Record
+ * @see https://tools.ietf.org/html/rfc2845
+ */
+
+class TSIGRecord extends RecordData {
+  constructor() {
+    super();
+    this.algorithm = '';
+    this.timeSigned = 0;
+    this.fudge = 0;
+    this.mac = DUMMY;
+    this.origID = 0;
+    this.error = 0;
+    this.other = DUMMY;
+  }
+
+  getSize() {
+    let size = 16;
+    size += sizeName(this.algorithm);
+    size += this.mac.length;
+    size += this.other.length;
+    return size;
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.algorithm);
+    bw.writeU16BE((this.timeSigned / 0x100000000) >>> 0);
+    bw.writeU32BE(this.timeSigned >>> 0);
+    bw.writeU16BE(this.fudge);
+    bw.writeU16BE(this.mac.length);
+    bw.writeBytes(this.mac);
+    bw.writeU16BE(this.origID);
+    bw.writeU16BE(this.error);
+    bw.writeU16BE(this.other.length);
+    bw.writeBytes(this.other);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.algorithm = readNameBR(br);
+    this.timeSigned = br.readU16BE() * 0x100000000 + br.readU32BE();
+    this.fudge = br.readU16BE();
+    this.mac = br.readBytes(br.readU16BE());
+    this.origID = br.readU16BE();
+    this.error = br.readU16BE();
+    this.other = br.readBytes(br.readU16BE());
+    return this;
+  }
+}
+
+/**
+ * ANY Record
+ * All Cached Records (pseudo-resource)
+ * @see https://tools.ietf.org/html/rfc1035#page-12
+ */
+
+class ANYRecord extends RecordData {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * TA Record
+ * Trust Authorities Record
+ * @see http://www.watson.org/~weiler/INI1999-19.pdf
+ */
+
+class TARecord extends RecordData {
+  constructor() {
+    super();
+    this.keyTag = 0;
+    this.algorithm = 0;
+    this.digestType = 0;
+    this.digest = DUMMY;
+  }
+
+  getSize() {
+    return 4 + this.digest.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.keyTag);
+    bw.writeU8(this.algorithm);
+    bw.writeU8(this.digestType);
+    bw.writeBytes(this.digest);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.keyTag = br.readU16BE();
+    this.algorithm = br.readU8();
+    this.digestType = br.readU8();
+    this.digest = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * DLV Record
+ * DNSSEC Lookaside Validation Record
+ * @see https://tools.ietf.org/html/rfc4431
+ */
+
+class DLVRecord extends DSRecord {
+  constructor() {
+    super();
   }
 }
 
@@ -2767,7 +2944,7 @@ class A6Record extends RecordData {
 function decode(type, data) {
   switch (type) {
     case types.NONE:
-      return ANYRecord.fromRaw(data);
+      return UNKNOWNRecord.fromRaw(data);
     case types.A:
       return ARecord.fromRaw(data);
     case types.NS:
@@ -2916,12 +3093,18 @@ function decode(type, data) {
       return CAARecord.fromRaw(data);
     case types.AVC:
       return AVCRecord.fromRaw(data);
-    case types.TKEY:
-      return TKEYRecord.fromRaw(data);
     case types.TSIG:
       return TSIGRecord.fromRaw(data);
-    default:
+    case types.TKEY:
+      return TKEYRecord.fromRaw(data);
+    case types.ANY:
       return ANYRecord.fromRaw(data);
+    case types.TA:
+      return TARecord.fromRaw(data);
+    case types.DLV:
+      return DLVRecord.fromRaw(data);
+    default:
+      return UNKNOWNRecord.fromRaw(data);
   }
 }
 
@@ -2940,7 +3123,7 @@ function read(type, br) {
 
   switch (type) {
     case types.NONE:
-      ret = ANYRecord.fromReader(cbr);
+      ret = UNKNOWNRecord.fromReader(cbr);
       break;
     case types.A:
       ret = ARecord.fromReader(cbr);
@@ -3164,14 +3347,23 @@ function read(type, br) {
     case types.AVC:
       ret = AVCRecord.fromReader(cbr);
       break;
-    case types.TKEY:
-      ret = TKEYRecord.fromReader(cbr);
-      break;
     case types.TSIG:
       ret = TSIGRecord.fromReader(cbr);
       break;
-    default:
+    case types.TKEY:
+      ret = TKEYRecord.fromReader(cbr);
+      break;
+    case types.ANY:
       ret = ANYRecord.fromReader(cbr);
+      break;
+    case types.TA:
+      ret = TARecord.fromReader(cbr);
+      break;
+    case types.DLV:
+      ret = DLVRecord.fromReader(cbr);
+      break;
+    default:
+      ret = UNKNOWNRecord.fromReader(cbr);
       break;
   }
 
@@ -3179,7 +3371,6 @@ function read(type, br) {
 
   return ret;
 }
-
 
 /*
  * Expose
@@ -3194,85 +3385,86 @@ exports.Message = Message;
 exports.Question = Question;
 exports.Record = Record;
 
-exports.ANYRecord = ANYRecord;
+exports.UNKNOWNRecord = UNKNOWNRecord;
+exports.ARecord = ARecord;
+exports.NSRecord = NSRecord;
+exports.MDRecord = MDRecord;
+exports.MFRecord = MFRecord;
 exports.CNAMERecord = CNAMERecord;
-exports.HINFORecord = HINFORecord;
+exports.SOARecord = SOARecord;
 exports.MBRecord = MBRecord;
 exports.MGRecord = MGRecord;
-exports.MINFORecord = MINFORecord;
 exports.MRRecord = MRRecord;
-exports.MFRecord = MFRecord;
-exports.MDRecord = MDRecord;
+exports.NULLRecord = NULLRecord;
+exports.WKSRecord = WKSRecord;
+exports.PTRRecord = PTRRecord;
+exports.HINFORecord = HINFORecord;
+exports.MINFORecord = MINFORecord;
 exports.MXRecord = MXRecord;
+exports.TXTRecord = TXTRecord;
+exports.RPRecord = RPRecord;
 exports.AFSDBRecord = AFSDBRecord;
 exports.X25Record = X25Record;
+exports.ISDNRecord = ISDNRecord;
 exports.RTRecord = RTRecord;
-exports.NSRecord = NSRecord;
-exports.PTRRecord = PTRRecord;
-exports.RPRecord = RPRecord;
-exports.SOARecord = SOARecord;
-exports.TXTRecord = TXTRecord;
-exports.SPFRecord = SPFRecord;
-exports.AVCRecord = AVCRecord;
+exports.NSAPRecord = NSAPRecord;
+exports.NSAPPTRRecord = NSAPPTRRecord;
+exports.SIGRecord = SIGRecord;
+exports.KEYRecord = KEYRecord;
+exports.PXRecord = PXRecord;
+exports.GPOSRecord = GPOSRecord;
+exports.AAAARecord = AAAARecord;
+exports.LOCRecord = LOCRecord;
+exports.NXTRecord = NXTRecord;
+exports.EIDRecord = EIDRecord;
+exports.NIMLOCRecord = NIMLOCRecord;
 exports.SRVRecord = SRVRecord;
+exports.ATMARecord = ATMARecord;
 exports.NAPTRRecord = NAPTRRecord;
+exports.KXRecord = KXRecord;
 exports.CERTRecord = CERTRecord;
 exports.A6Record = A6Record;
 exports.DNAMERecord = DNAMERecord;
-exports.ARecord = ARecord;
-exports.AAAARecord = AAAARecord;
-exports.PXRecord = PXRecord;
-exports.GPOSRecord = GPOSRecord;
-exports.LOCRecord = LOCRecord;
-exports.SIGRecord = SIGRecord;
-exports.RRSIGRecord = RRSIGRecord;
-exports.NSECRecord = NSECRecord;
+exports.OPTRecord = OPTRecord;
+exports.APLRecord = APLRecord;
 exports.DSRecord = DSRecord;
-exports.DLVRecord = DLVRecord;
-exports.CDSRecord = CDSRecord;
-exports.KXRecord = KXRecord;
-exports.TARecord = TARecord;
-exports.TALINKRecord = TALINKRecord;
 exports.SSHFPRecord = SSHFPRecord;
 exports.IPSECKEYRecord = IPSECKEYRecord;
-exports.KEYRecord = KEYRecord;
+exports.RRSIGRecord = RRSIGRecord;
+exports.NSECRecord = NSECRecord;
 exports.DNSKEYRecord = DNSKEYRecord;
-exports.CDNSKEYRecord = CDNSKEYRecord;
-exports.RKEYRecord = RKEYRecord;
-exports.NSAPRecord = NSAPRecord;
-exports.NSAPPTRRecord = NSAPPTRRecord;
+exports.DHCIDRecord = DHCIDRecord;
 exports.NSEC3Record = NSEC3Record;
 exports.NSEC3PARAMRecord = NSEC3PARAMRecord;
-exports.TKEYRecord = TKEYRecord;
-exports.RFC3597Record = RFC3597Record;
-exports.URIRecord = URIRecord;
-exports.DHCIDRecord = DHCIDRecord;
+exports.TLSARecord = TLSARecord;
 exports.SMIMEARecord = SMIMEARecord;
 exports.HIPRecord = HIPRecord;
 exports.NINFORecord = NINFORecord;
+exports.RKEYRecord = RKEYRecord;
+exports.TALINKRecord = TALINKRecord;
+exports.CDSRecord = CDSRecord;
+exports.CDNSKEYRecord = CDNSKEYRecord;
+exports.OPENPGPKEYRecord = OPENPGPKEYRecord;
+exports.CSYNCRecord = CSYNCRecord;
+exports.SPFRecord = SPFRecord;
+exports.UINFORecord = UINFORecord;
+exports.UIDRecord = UIDRecord;
+exports.GIDRecord = GIDRecord;
+exports.UNSPECRecord = UNSPECRecord;
 exports.NIDRecord = NIDRecord;
 exports.L32Record = L32Record;
 exports.L64Record = L64Record;
 exports.LPRecord = LPRecord;
 exports.EUI48Record = EUI48Record;
 exports.EUI64Record = EUI64Record;
+exports.URIRecord = URIRecord;
 exports.CAARecord = CAARecord;
-exports.UIDRecord = UIDRecord;
-exports.GIDRecord = GIDRecord;
-exports.UINFORecord = UINFORecord;
-exports.EIDRecord = EIDRecord;
-exports.NIMLOCRecord = NIMLOCRecord;
-exports.OPENPGPKEYRecord = OPENPGPKEYRecord;
-exports.CSYNCRecord = CSYNCRecord;
+exports.AVCRecord = AVCRecord;
+exports.TKEYRecord = TKEYRecord;
 exports.TSIGRecord = TSIGRecord;
-exports.ISDNRecord = ISDNRecord;
-exports.NULLRecord = NULLRecord;
-exports.WKSRecord = WKSRecord;
-exports.OPTRecord = OPTRecord;
-exports.APLRecord = APLRecord;
-exports.NXTRecord = NXTRecord;
-exports.ATMARecord = ATMARecord;
-exports.UNSPECRecord = UNSPECRecord;
+exports.ANYRecord = ANYRecord;
+exports.TARecord = TARecord;
+exports.DLVRecord = DLVRecord;
 
 exports.decode = decode;
 exports.read = read;
