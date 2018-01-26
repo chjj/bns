@@ -39,6 +39,7 @@ const types = {
   MG: 8,
   MR: 9,
   NULL: 10,
+  WKS: 11,
   PTR: 12,
   HINFO: 13,
   MINFO: 14,
@@ -49,6 +50,7 @@ const types = {
   X25: 19,
   ISDN: 20,
   RT: 21,
+  NSAP: 22,
   NSAPPTR: 23,
   SIG: 24,
   KEY: 25,
@@ -64,10 +66,14 @@ const types = {
   NAPTR: 35,
   KX: 36,
   CERT: 37,
+  A6: 38,
   DNAME: 39,
-  OPT: 41, // EDNS
+  // SINK: 40,
+  OPT: 41,
+  APL: 42,
   DS: 43,
   SSHFP: 44,
+  IPSECKEY: 45,
   RRSIG: 46,
   NSEC: 47,
   DNSKEY: 48,
@@ -2338,6 +2344,422 @@ class CSYNCRecord extends RecordData {
   }
 }
 
+/**
+ * TSIGRecord
+ * https://tools.ietf.org/html/rfc2845
+ */
+
+class TSIGRecord extends RecordData {
+  constructor() {
+    super();
+    this.algorithm = '';
+    this.timeSigned = 0;
+    this.fudge = 0;
+    this.mac = DUMMY;
+    this.origID = 0;
+    this.error = 0;
+    this.other = DUMMY;
+  }
+
+  getSize() {
+    let size = 16;
+    size += sizeName(this.algorithm);
+    size += this.mac.length;
+    size += this.other.length;
+    return size;
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.algorithm);
+    bw.writeU16BE((this.timeSigned / 0x100000000) >>> 0);
+    bw.writeU32BE(this.timeSigned >>> 0);
+    bw.writeU16BE(this.fudge);
+    bw.writeU16BE(this.mac.length);
+    bw.writeBytes(this.mac);
+    bw.writeU16BE(this.origID);
+    bw.writeU16BE(this.error);
+    bw.writeU16BE(this.other.length);
+    bw.writeBytes(this.other);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.algorithm = readNameBR(br);
+    this.timeSigned = br.readU16BE() * 0x100000000 + br.readU32BE();
+    this.fudge = br.readU16BE();
+    this.mac = br.readBytes(br.readU16BE());
+    this.origID = br.readU16BE();
+    this.error = br.readU16BE();
+    this.other = br.readBytes(br.readU16BE());
+    return this;
+  }
+}
+
+/**
+ * ISDNRecord
+ * https://tools.ietf.org/html/rfc1183
+ */
+
+class ISDNRecord extends RecordData {
+  constructor() {
+    super();
+    this.address = '';
+    this.sa = '';
+  }
+
+  getSize() {
+    return 1 + this.address.length + 1 + this.sa.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.address.length);
+    bw.writeString(this.address, 'ascii');
+    bw.writeU8(this.sa.length);
+    bw.writeString(this.sa, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    this.address = br.readString('ascii', br.readU8());
+    this.sa = br.readString('ascii', br.readU8());
+    return this;
+  }
+}
+
+/**
+ * NULL
+ * https://tools.ietf.org/html/rfc1035
+ */
+
+class NULLRecord extends ANYRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * OPTRecord
+ * https://tools.ietf.org/html/rfc6891#section-6.1
+ */
+
+class OPTRecord extends RecordData {
+  constructor() {
+    super();
+    this.code = 0;
+    this.data = DUMMY;
+  }
+
+  getSize() {
+    return 4 + this.data.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.code);
+    bw.writeU16BE(this.data.length);
+    bw.writeBytes(this.data);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.code = br.readU16BE();
+    this.data = br.readBytes(br.readU16BE());
+    return this;
+  }
+}
+
+/**
+ * APLRecord
+ * https://tools.ietf.org/html/rfc3123
+ */
+
+class APLRecord extends RecordData {
+  constructor() {
+    super();
+    this.family = 0;
+    this.prefix = 0;
+    this.n = 0;
+    this.afd = DUMMY;
+  }
+
+  getSize() {
+    return 4 + this.afd.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU16BE(this.family);
+    bw.writeU8(this.prefix);
+    bw.writeU8((this.n << 7) | this.afd.length);
+    bw.writeBytes(this.afd);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.family = br.readU16BE();
+    this.prefix = br.readU8();
+
+    const field = br.readU8();
+    const n = field >>> 7;
+    const len = field & 0x7f;
+
+    this.n = n;
+    this.data = br.readBytes(len);
+
+    return this;
+  }
+}
+
+/**
+ * NXTRecord
+ * https://tools.ietf.org/html/rfc2065#section-5.2
+ */
+
+class NXTRecord extends RecordData {
+  constructor() {
+    super();
+    this.nextDomain = '';
+    this.typeBitmap = DUMMY2;
+  }
+
+  getSize() {
+    return sizeName(this.nextDomain) + this.typeBitmap.length;
+  }
+
+  toWriter(bw) {
+    writeNameBW(bw, this.nextDomain);
+    bw.writeBytes(this.typeBitmap);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.nextDomain = readNameBR(br);
+    this.typeBitmap = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * ATMARecord
+ * http://www.broadband-forum.org/ftp/pub/approved-specs/af-dans-0152.000.pdf
+ */
+
+class ATMARecord extends RecordData {
+  constructor() {
+    super();
+    this.format = 0;
+    this.address = DUMMY;
+  }
+
+  getSize() {
+    return 1 + this.address.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.format);
+    bw.writeBytes(this.address);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.format = br.readU8();
+    this.address = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * UNSPEC
+ */
+
+class UNSPECRecord extends ANYRecord {
+  constructor() {
+    super();
+  }
+}
+
+/**
+ * WKSRecord
+ * https://tools.ietf.org/html/rfc883
+ */
+
+class WKSRecord extends RecordData {
+  constructor() {
+    super();
+    this.address = DUMMY4;
+    this.protocol = 0;
+    this.bitmap = DUMMY2;
+  }
+
+  getSize() {
+    return 5 + this.bitmap.length;
+  }
+
+  toWriter(bw) {
+    bw.writeBytes(this.address);
+    bw.writeU8(this.protocol);
+    bw.writeBytes(this.bitmap);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.address = br.readBytes(4);
+    this.protocol = br.readU8();
+    this.bitmap = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * IPSECKEYRecord
+ * https://tools.ietf.org/html/rfc4025
+ */
+
+class IPSECKEYRecord extends RecordData {
+  constructor() {
+    super();
+    this.precedence = 0;
+    this.gatewayType = 0;
+    this.algorithm = 0;
+    this.ip4 = DUMMY4;
+    this.ip6 = DUMMY16;
+    this.domain = '';
+    this.publicKey = DUMMY;
+  }
+
+  getSize() {
+    let size = 3;
+
+    switch (this.gatewayType) {
+      case 0:
+        size += 0;
+        break;
+      case 1:
+        size += 4;
+        break;
+      case 2:
+        size += 16;
+        break;
+      case 3:
+        size += sizeName(this.domain);
+        break;
+    }
+
+    size += this.publicKey.length;
+
+    return size;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.precedence);
+    bw.writeU8(this.gatewayType);
+    bw.writeU8(this.algorithm);
+
+    switch (this.gatewayType) {
+      case 0:
+        break;
+      case 1:
+        assert(this.ip4.length === 4);
+        bw.writeBytes(this.ip4);
+        break;
+      case 2:
+        assert(this.ip6.length === 16);
+        bw.writeBytes(this.ip6);
+        break;
+      case 3:
+        writeNameBW(bw, this.domain);
+        break;
+      default:
+        throw new Error('Unknown gateway type.');
+    }
+
+    bw.writeBytes(this.publicKey);
+
+    return bw;
+  }
+
+  fromReader(br) {
+    this.precedence = br.readU8();
+    this.gatewayType = br.readU8();
+    this.algorithm = br.readU8();
+
+    switch (this.gatewayType) {
+      case 0:
+        break;
+      case 1:
+        this.ip4 = br.readBytes(4);
+        break;
+      case 2:
+        this.ip6 = br.readBytes(16);
+        break;
+      case 3:
+        this.domain = readNameBR(br);
+        break;
+      default:
+        throw new Error('Unknown gateway type.');
+    }
+
+    this.publicKey = br.readBytes(br.left());
+
+    return this;
+  }
+}
+
+/**
+ * NSAPRecord
+ * https://tools.ietf.org/html/rfc1706
+ */
+
+class NSAPRecord extends RecordData {
+  constructor() {
+    super();
+    this.nsap = DUMMY;
+  }
+
+  getSize() {
+    return this.nsap.length;
+  }
+
+  toWriter(bw) {
+    bw.writeBytes(this.nsap);
+    return bw;
+  }
+
+  fromReader(br) {
+    this.nsap = br.readBytes(br.left());
+    return this;
+  }
+}
+
+/**
+ * A6Record
+ * https://tools.ietf.org/html/rfc2874#section-3.1.1
+ */
+
+class A6Record extends RecordData {
+  constructor() {
+    super();
+    this.address = DUMMY16;
+    this.prefix = '';
+  }
+
+  getSize() {
+    return 17 + this.prefix.length;
+  }
+
+  toWriter(bw) {
+    bw.writeU8(this.prefix.length);
+    bw.writeBytes(this.address);
+    bw.writeString(this.prefix, 'ascii');
+    return bw;
+  }
+
+  fromReader(br) {
+    const prefixLen = br.readU8();
+    this.address = br.readBytes(16);
+    this.prefix = br.readString('ascii', prefixLen);
+    return this;
+  }
+}
+
 /*
  * Decode
  */
@@ -2365,7 +2787,9 @@ function decode(type, data) {
     case types.MR:
       return MRRecord.fromRaw(data);
     case types.NULL:
-      return ANYRecord.fromRaw(data);
+      return NULLRecord.fromRaw(data);
+    case types.WKS:
+      return WKSRecord.fromRaw(data);
     case types.PTR:
       return PTRRecord.fromRaw(data);
     case types.HINFO:
@@ -2383,9 +2807,11 @@ function decode(type, data) {
     case types.X25:
       return X25Record.fromRaw(data);
     case types.ISDN:
-      return ANYRecord.fromRaw(data); // XXX
+      return ISDNRecord.fromRaw(data);
     case types.RT:
       return RTRecord.fromRaw(data);
+    case types.NSAP:
+      return NSAPRecord.fromRaw(data);
     case types.NSAPPTR:
       return NSAPPTRRecord.fromRaw(data);
     case types.SIG:
@@ -2401,7 +2827,7 @@ function decode(type, data) {
     case types.LOC:
       return LOCRecord.fromRaw(data);
     case types.NXT:
-      return ANYRecord.fromRaw(data); // XXX
+      return NXTRecord.fromRaw(data);
     case types.EID:
       return EIDRecord.fromRaw(data);
     case types.NIMLOC:
@@ -2409,21 +2835,27 @@ function decode(type, data) {
     case types.SRV:
       return SRVRecord.fromRaw(data);
     case types.ATMA:
-      return ANYRecord.fromRaw(data); // XXX
+      return ATMARecord.fromRaw(data);
     case types.NAPTR:
       return NAPTRRecord.fromRaw(data);
     case types.KX:
       return KXRecord.fromRaw(data);
     case types.CERT:
       return CERTRecord.fromRaw(data);
+    case types.A6:
+      return A6Record.fromRaw(data);
     case types.DNAME:
       return DNAMERecord.fromRaw(data);
     case types.OPT:
-      return ANYRecord.fromRaw(data); // XXX
+      return OPTRecord.fromRaw(data);
+    case types.APL:
+      return APLRecord.fromRaw(data);
     case types.DS:
       return DSRecord.fromRaw(data);
     case types.SSHFP:
       return SSHFPRecord.fromRaw(data);
+    case types.IPSECKEY:
+      return IPSECKEYRecord.fromRaw(data);
     case types.RRSIG:
       return RRSIGRecord.fromRaw(data);
     case types.NSEC:
@@ -2465,7 +2897,7 @@ function decode(type, data) {
     case types.GID:
       return GIDRecord.fromRaw(data);
     case types.UNSPEC:
-      return ANYRecord.fromRaw(data); // XXX
+      return UNSPECRecord.fromRaw(data);
     case types.NID:
       return NIDRecord.fromRaw(data);
     case types.L32:
@@ -2487,7 +2919,7 @@ function decode(type, data) {
     case types.TKEY:
       return TKEYRecord.fromRaw(data);
     case types.TSIG:
-      return ANYRecord.fromRaw(data); // XXX
+      return TSIGRecord.fromRaw(data);
     default:
       return ANYRecord.fromRaw(data);
   }
@@ -2538,7 +2970,10 @@ function read(type, br) {
       ret = MRRecord.fromReader(cbr);
       break;
     case types.NULL:
-      ret = ANYRecord.fromReader(cbr);
+      ret = NULLRecord.fromReader(cbr);
+      break;
+    case types.WKS:
+      ret = WKSRecord.fromReader(cbr);
       break;
     case types.PTR:
       ret = PTRRecord.fromReader(cbr);
@@ -2565,10 +3000,13 @@ function read(type, br) {
       ret = X25Record.fromReader(cbr);
       break;
     case types.ISDN:
-      ret = ANYRecord.fromReader(cbr); // XXX
+      ret = ISDNRecord.fromReader(cbr);
       break;
     case types.RT:
       ret = RTRecord.fromReader(cbr);
+      break;
+    case types.NSAP:
+      ret = NSAPRecord.fromReader(cbr);
       break;
     case types.NSAPPTR:
       ret = NSAPPTRRecord.fromReader(cbr);
@@ -2592,7 +3030,7 @@ function read(type, br) {
       ret = LOCRecord.fromReader(cbr);
       break;
     case types.NXT:
-      ret = ANYRecord.fromReader(cbr); // XXX
+      ret = NXTRecord.fromReader(cbr);
       break;
     case types.EID:
       ret = EIDRecord.fromReader(cbr);
@@ -2604,7 +3042,7 @@ function read(type, br) {
       ret = SRVRecord.fromReader(cbr);
       break;
     case types.ATMA:
-      ret = ANYRecord.fromReader(cbr); // XXX
+      ret = ATMARecord.fromReader(cbr);
       break;
     case types.NAPTR:
       ret = NAPTRRecord.fromReader(cbr);
@@ -2615,17 +3053,26 @@ function read(type, br) {
     case types.CERT:
       ret = CERTRecord.fromReader(cbr);
       break;
+    case types.A6:
+      ret = A6Record.fromReader(cbr);
+      break;
     case types.DNAME:
       ret = DNAMERecord.fromReader(cbr);
       break;
     case types.OPT:
-      ret = ANYRecord.fromReader(cbr); // XXX
+      ret = OPTRecord.fromReader(cbr);
+      break;
+    case types.APL:
+      ret = APLRecord.fromReader(cbr);
       break;
     case types.DS:
       ret = DSRecord.fromReader(cbr);
       break;
     case types.SSHFP:
       ret = SSHFPRecord.fromReader(cbr);
+      break;
+    case types.IPSECKEY:
+      ret = IPSECKEYRecord.fromReader(cbr);
       break;
     case types.RRSIG:
       ret = RRSIGRecord.fromReader(cbr);
@@ -2688,7 +3135,7 @@ function read(type, br) {
       ret = GIDRecord.fromReader(cbr);
       break;
     case types.UNSPEC:
-      ret = ANYRecord.fromReader(cbr); // XXX
+      ret = UNSPECRecord.fromReader(cbr);
       break;
     case types.NID:
       ret = NIDRecord.fromReader(cbr);
@@ -2721,7 +3168,7 @@ function read(type, br) {
       ret = TKEYRecord.fromReader(cbr);
       break;
     case types.TSIG:
-      ret = ANYRecord.fromReader(cbr); // XXX
+      ret = TSIGRecord.fromReader(cbr);
       break;
     default:
       ret = ANYRecord.fromReader(cbr);
@@ -2770,6 +3217,7 @@ exports.AVCRecord = AVCRecord;
 exports.SRVRecord = SRVRecord;
 exports.NAPTRRecord = NAPTRRecord;
 exports.CERTRecord = CERTRecord;
+exports.A6Record = A6Record;
 exports.DNAMERecord = DNAMERecord;
 exports.ARecord = ARecord;
 exports.AAAARecord = AAAARecord;
@@ -2786,10 +3234,12 @@ exports.KXRecord = KXRecord;
 exports.TARecord = TARecord;
 exports.TALINKRecord = TALINKRecord;
 exports.SSHFPRecord = SSHFPRecord;
+exports.IPSECKEYRecord = IPSECKEYRecord;
 exports.KEYRecord = KEYRecord;
 exports.DNSKEYRecord = DNSKEYRecord;
 exports.CDNSKEYRecord = CDNSKEYRecord;
 exports.RKEYRecord = RKEYRecord;
+exports.NSAPRecord = NSAPRecord;
 exports.NSAPPTRRecord = NSAPPTRRecord;
 exports.NSEC3Record = NSEC3Record;
 exports.NSEC3PARAMRecord = NSEC3PARAMRecord;
@@ -2814,5 +3264,15 @@ exports.EIDRecord = EIDRecord;
 exports.NIMLOCRecord = NIMLOCRecord;
 exports.OPENPGPKEYRecord = OPENPGPKEYRecord;
 exports.CSYNCRecord = CSYNCRecord;
+exports.TSIGRecord = TSIGRecord;
+exports.ISDNRecord = ISDNRecord;
+exports.NULLRecord = NULLRecord;
+exports.WKSRecord = WKSRecord;
+exports.OPTRecord = OPTRecord;
+exports.APLRecord = APLRecord;
+exports.NXTRecord = NXTRecord;
+exports.ATMARecord = ATMARecord;
+exports.UNSPECRecord = UNSPECRecord;
 
 exports.decode = decode;
+exports.read = read;

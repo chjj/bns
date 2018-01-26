@@ -105,7 +105,7 @@ function resolve() {
   req.opcode = opcodes.QUERY;
 
   const q = new Question();
-  q.name = 'com.';
+  q.name = process.argv[2] || 'com.';
   q.type = types.ANY;
   q.class = classes.INET;
 
