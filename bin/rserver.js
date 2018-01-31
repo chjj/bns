@@ -5,9 +5,21 @@
 const {RecursiveServer} = require('../lib/server');
 const server = new RecursiveServer('udp4');
 
+function log(obj) {
+  console.dir(obj, {
+    depth: 20,
+    customInspect: true,
+    colors: true
+  });
+}
+
 server.on('error', (err) => {
   console.error(err.stack);
   server.close();
+});
+
+server.on('query', (req, res) => {
+  log(req);
 });
 
 server.on('listening', () => {

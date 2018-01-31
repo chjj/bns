@@ -41,20 +41,20 @@ server.on('query', (req, res) => {
   console.log('Received request:');
   log(req);
 
-  for (const q of req.question) {
-    if (q.class !== classes.INET
-        && q.class !== classes.ANY) {
+  for (const qs of req.question) {
+    if (qs.class !== classes.INET
+        && qs.class !== classes.ANY) {
       continue;
     }
 
     const answer = new Record();
-    answer.name = q.name;
+    answer.name = qs.name;
     answer.class = classes.INET;
 
-    if (q.type === types.A || q.type === types.ANY) {
+    if (qs.type === types.A || qs.type === types.ANY) {
       answer.type = types.A;
       answer.data = new ARecord();
-    } else if (q.type === types.AAAA) {
+    } else if (qs.type === types.AAAA) {
       answer.type = types.AAAA;
       answer.data = new AAAARecord();
     } else {
