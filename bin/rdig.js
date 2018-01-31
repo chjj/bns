@@ -2,7 +2,7 @@
 
 'use strict';
 
-const {StubResolver} = require('../lib/resolver');
+const {RecursiveResolver} = require('../lib/resolver');
 const wire = require('../lib/wire');
 
 const {
@@ -22,12 +22,23 @@ function log(obj) {
 }
 
 async function resolve(name, type, host, port) {
-  const resolver = new StubResolver('udp4');
+  const resolver = new RecursiveResolver('udp4');
 
   await resolver.open();
 
+  let auth = null;
+
+  if (host != null) {
+    auth = {
+      name: '.',
+      host: host,
+      port: port || 53,
+      zone: '.'
+    };
+  }
+
   try {
-    return await resolver.lookup(name, type, port, host);
+    return await resolver.lookup(name, type, auth);
   } finally {
     await resolver.close();
   }

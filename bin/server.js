@@ -2,9 +2,7 @@
 
 'use strict';
 
-const assert = require('assert');
-const bio = require('bufio');
-const DNSServer = require('../lib/server');
+const {DNSServer} = require('../lib/server');
 const wire = require('../lib/wire');
 
 const {
