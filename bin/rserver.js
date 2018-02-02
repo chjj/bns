@@ -10,6 +10,10 @@ server.on('error', (err) => {
   console.error(err.stack);
 });
 
+server.on('log', (...args) => {
+  console.error(...args);
+});
+
 server.on('query', (req, res, rinfo) => {
   console.log('Rinfo:');
   util.dir(rinfo);

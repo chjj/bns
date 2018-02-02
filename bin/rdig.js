@@ -28,6 +28,10 @@ function log(obj) {
 async function resolve(name, type, host, port) {
   const resolver = new RecursiveResolver('udp4');
 
+  resolver.on('log', (...args) => {
+    console.error(...args);
+  });
+
   await resolver.open();
 
   let auth = null;
