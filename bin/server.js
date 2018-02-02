@@ -4,6 +4,7 @@
 
 const {DNSServer} = require('../lib/server');
 const wire = require('../lib/wire');
+const util = require('../lib/util');
 
 const {
   Message,
@@ -16,30 +17,18 @@ const {
   opcodes
 } = wire;
 
-function log(obj) {
-  console.dir(obj, {
-    depth: 20,
-    customInspect: true,
-    colors: true
-  });
-}
-
-const server = new DNSServer('udp4');
+const server = new DNSServer('udp6');
 
 server.on('error', (err) => {
   console.error(err.stack);
-  server.close();
 });
 
-server.on('query', (req, res) => {
+server.on('query', (req, res, rinfo) => {
   if (req.opcode !== opcodes.QUERY)
     return;
 
   if (req.question.length === 0)
     return;
-
-  console.log('Received request:');
-  log(req);
 
   for (const qs of req.question) {
     if (qs.class !== classes.INET
@@ -64,6 +53,13 @@ server.on('query', (req, res) => {
     res.answer.push(answer);
   }
 
+  console.log('Rinfo:');
+  util.dir(rinfo);
+  console.log('Request:');
+  util.dir(req);
+  console.log('Response:');
+  util.dir(res);
+
   res.send();
 });
 
@@ -74,4 +70,4 @@ server.on('listening', () => {
 
 // $ dig @127.0.0.1 google.com A -p 5300
 // $ node bin/dig.js google.com A 127.0.0.1 5300
-server.open(5300);
+server.open(5300, '::');
