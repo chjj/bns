@@ -3,7 +3,7 @@
 'use strict';
 
 const {RecursiveServer} = require('../lib/server');
-const server = new RecursiveServer('udp6');
+const server = new RecursiveServer('udp4');
 const util = require('../lib/util');
 
 server.on('error', (err) => {
