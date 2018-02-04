@@ -26,7 +26,7 @@ function log(obj) {
 }
 
 async function resolve(name, type, host, port) {
-  const resolver = new RecursiveResolver('udp4');
+  const resolver = new RecursiveResolver('udp6');
 
   resolver.on('log', (...args) => {
     console.error(...args);
