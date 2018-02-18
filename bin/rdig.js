@@ -3,6 +3,7 @@
 'use strict';
 
 const {RecursiveResolver} = require('../lib/resolver');
+const IP = require('binet');
 const wire = require('../lib/wire');
 const reverse = process.argv.indexOf('-x');
 
@@ -12,6 +13,7 @@ if (reverse !== -1)
 const {
   Message,
   Question,
+  Record,
   types,
   classes,
   opcodes
@@ -27,7 +29,7 @@ function log(obj) {
 }
 
 async function resolve(name, type, host, port) {
-  const resolver = new RecursiveResolver('udp6');
+  const resolver = new RecursiveResolver('udp4');
 
   resolver.on('log', (...args) => {
     console.error(...args);
@@ -35,27 +37,34 @@ async function resolve(name, type, host, port) {
 
   await resolver.open();
 
-  let auth = null;
-
   if (host != null) {
-    auth = {
-      name: '.',
-      host: host,
-      port: port || 53,
-      zone: '.'
-    };
+    const ip = IP.normalize(host);
+
+    resolver.hints.reset();
+    resolver.hints.ns.push('hints.local.');
+
+    if (IP.isIPv4String(ip))
+      resolver.hints.inet4.set('hints.local.', ip);
+    else
+      resolver.hints.inet6.set('hints.local.', ip);
+
+    if (port != null)
+      resolver.hints.port = port;
+
+    const anchor = '. 172800 IN DS 28834 8 2 305fadd310e0e468faa92d65d3d0c0fe1ff740f86f2b203bd46986bdf25582d5';
+    resolver.hints.anchors.push(Record.fromString(anchor));
   }
 
   if (reverse !== -1) {
     try {
-      return await resolver.reverse(name, auth);
+      return await resolver.reverse(name);
     } finally {
       await resolver.close();
     }
   }
 
   try {
-    return await resolver.lookup(name, type, auth);
+    return await resolver.lookup(name, type);
   } finally {
     await resolver.close();
   }
