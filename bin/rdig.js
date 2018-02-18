@@ -18,11 +18,12 @@ const {
 } = wire;
 
 function log(obj) {
-  console.dir(obj, {
-    depth: 20,
-    customInspect: true,
-    colors: true
-  });
+  // console.dir(obj, {
+  //   depth: 20,
+  //   customInspect: true,
+  //   colors: true
+  // });
+  console.log(obj.toString());
 }
 
 async function resolve(name, type, host, port) {
