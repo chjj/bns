@@ -3,21 +3,10 @@
 'use strict';
 
 const {RecursiveResolver} = require('../lib/resolver');
-const IP = require('binet');
-const wire = require('../lib/wire');
 const reverse = process.argv.indexOf('-x');
 
 if (reverse !== -1)
   process.argv.splice(reverse, 1);
-
-const {
-  Message,
-  Question,
-  Record,
-  types,
-  classes,
-  opcodes
-} = wire;
 
 function log(obj) {
   console.log(obj.toString());

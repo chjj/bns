@@ -23,7 +23,7 @@
   "scripts": {
     "browserify": "browserify -s bns lib/bns.js | uglifyjs -c > bns.js",
     "clean": "rm -f bns.js",
-    "lint": "eslint lib/ test/ || exit 0",
+    "lint": "eslint bin/ lib/ test/ || exit 0",
     "test": "mocha --reporter spec test/*-test.js",
     "webpack": "webpack --config webpack.config.js"
   },

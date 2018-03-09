@@ -7,8 +7,6 @@ const wire = require('../lib/wire');
 const util = require('../lib/util');
 
 const {
-  Message,
-  Question,
   Record,
   ARecord,
   AAAARecord,

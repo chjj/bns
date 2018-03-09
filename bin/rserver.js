@@ -2,10 +2,8 @@
 
 'use strict';
 
-const {Record} = require('../lib/wire');
 const {RecursiveServer} = require('../lib/server');
 const server = new RecursiveServer('udp4');
-const util = require('../lib/util');
 
 server.on('error', (err) => {
   console.error(err.stack);

@@ -3,19 +3,10 @@
 'use strict';
 
 const {StubResolver} = require('../lib/resolver');
-const wire = require('../lib/wire');
 const reverse = process.argv.indexOf('-x');
 
 if (reverse !== -1)
   process.argv.splice(reverse, 1);
-
-const {
-  Message,
-  Question,
-  types,
-  classes,
-  opcodes
-} = wire;
 
 function log(obj) {
   console.log(obj.toString());
