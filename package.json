@@ -1,0 +1,60 @@
+{
+  "name": "bns",
+  "version": "0.0.0",
+  "description": "DNS bike-shed",
+  "keywords": [
+    "bns",
+    "dns",
+    "udp",
+    "tcp"
+  ],
+  "license": "MIT",
+  "repository": "git://github.com/bcoin-org/bns.git",
+  "homepage": "https://github.com/bcoin-org/bns",
+  "bugs": {
+    "url": "https://github.com/bcoin-org/bns/issues"
+  },
+  "author": "Christopher Jeffrey <chjjeffrey@gmail.com>",
+  "main": "./lib/bns.js",
+  "bin": {
+    "dig.js": "./bin/dig.js",
+    "rdig.js": "./bin/rdig.js"
+  },
+  "scripts": {
+    "browserify": "browserify -s bns lib/bns.js | uglifyjs -c > bns.js",
+    "clean": "rm -f bns.js",
+    "lint": "eslint lib/ test/ || exit 0",
+    "test": "mocha --reporter spec test/*-test.js",
+    "webpack": "webpack --config webpack.config.js"
+  },
+  "dependencies": {
+    "binet": "0.0.1",
+    "btcp": "0.0.1",
+    "budp": "0.0.1",
+    "bufio": "0.0.1",
+    "elliptic": "0.0.1"
+  },
+  "devDependencies": {
+    "babelify": "^8.0.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "browserify": "^14.5.0",
+    "eslint": "^4.14.0",
+    "mocha": "^4.0.1",
+    "uglifyjs-webpack-plugin": "^1.1.5",
+    "uglify-es": "^3.1.3",
+    "webpack": "^3.10.0"
+  },
+  "engines": {
+    "node": ">=7.6.0"
+  },
+  "browser": {
+    "./lib/crypto": "./lib/crypto.js"
+  },
+  "browserify": {
+    "transform": [
+      "babelify"
+    ]
+  }
+}

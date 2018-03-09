@@ -18,16 +18,11 @@ const {
 } = wire;
 
 function log(obj) {
-  // console.dir(obj, {
-  //   depth: 20,
-  //   customInspect: true,
-  //   colors: true
-  // });
   console.log(obj.toString());
 }
 
 async function resolve(name, type, host, port) {
-  const resolver = new StubResolver('udp6');
+  const resolver = new StubResolver('udp4');
 
   resolver.on('log', (...args) => {
     console.error(...args);
