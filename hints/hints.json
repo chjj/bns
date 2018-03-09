@@ -1,0 +1,389 @@
+[
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "A.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "A.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "198.41.0.4"
+    }
+  },
+  {
+    "name": "A.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:503:ba3e::2:30"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "B.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "B.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "199.9.14.201"
+    }
+  },
+  {
+    "name": "B.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:200::b"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "C.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "C.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "192.33.4.12"
+    }
+  },
+  {
+    "name": "C.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:2::c"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "D.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "D.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "199.7.91.13"
+    }
+  },
+  {
+    "name": "D.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:2d::d"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "E.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "E.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "192.203.230.10"
+    }
+  },
+  {
+    "name": "E.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:a8::e"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "F.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "F.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "192.5.5.241"
+    }
+  },
+  {
+    "name": "F.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:2f::f"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "G.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "G.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "192.112.36.4"
+    }
+  },
+  {
+    "name": "G.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:12::d0d"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "H.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "H.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "198.97.190.53"
+    }
+  },
+  {
+    "name": "H.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:1::53"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "I.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "I.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "192.36.148.17"
+    }
+  },
+  {
+    "name": "I.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:7fe::53"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "J.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "J.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "192.58.128.30"
+    }
+  },
+  {
+    "name": "J.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:503:c27::2:30"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "K.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "K.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "193.0.14.129"
+    }
+  },
+  {
+    "name": "K.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:7fd::1"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "L.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "L.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "199.7.83.42"
+    }
+  },
+  {
+    "name": "L.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:500:9f::42"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "NS",
+    "data": {
+      "ns": "M.ROOT-SERVERS.NET."
+    }
+  },
+  {
+    "name": "M.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "A",
+    "data": {
+      "address": "202.12.27.33"
+    }
+  },
+  {
+    "name": "M.ROOT-SERVERS.NET.",
+    "ttl": 3600000,
+    "class": "INET",
+    "type": "AAAA",
+    "data": {
+      "address": "2001:dc3::35"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 172800,
+    "class": "INET",
+    "type": "DS",
+    "data": {
+      "keyTag": 20326,
+      "algorithm": 8,
+      "digestType": 2,
+      "digest": "e06d44b80b8f1d39a95c0b0d7c65d08458e880409bbc683457104237c7f8ec8d"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 172800,
+    "class": "INET",
+    "type": "DS",
+    "data": {
+      "keyTag": 41824,
+      "algorithm": 8,
+      "digestType": 2,
+      "digest": "2895fff34928abec636d02553ccf6d807cfb6442d946a74dbd276c97b3118aff"
+    }
+  },
+  {
+    "name": ".",
+    "ttl": 172800,
+    "class": "INET",
+    "type": "DS",
+    "data": {
+      "keyTag": 19036,
+      "algorithm": 8,
+      "digestType": 2,
+      "digest": "49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5"
+    }
+  }
+]
