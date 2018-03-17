@@ -41,7 +41,7 @@ async function resolve(name, type, host, port) {
   const res = await resolve(name, type, host, port);
   const ms = Date.now() - now;
 
-  console.log(res.toString(ms));
+  process.stdout.write(res.toString(ms) + '\n');
 })().catch((err) => {
   console.error(err.message);
   process.exit(1);
