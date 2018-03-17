@@ -8,10 +8,6 @@ const reverse = process.argv.indexOf('-x');
 if (reverse !== -1)
   process.argv.splice(reverse, 1);
 
-function log(obj) {
-  console.log(obj.toString());
-}
-
 async function resolve(name, type, host, port) {
   const resolver = new RecursiveResolver('udp4');
 
@@ -41,5 +37,12 @@ async function resolve(name, type, host, port) {
   const type = process.argv[3] || null;
   const host = process.argv[4] || null;
   const port = (process.argv[5] | 0) || null;
-  log(await resolve(name, type, host, port));
-})();
+  const now = Date.now();
+  const res = await resolve(name, type, host, port);
+  const ms = Date.now() - now;
+
+  console.log(res.toString(ms));
+})().catch((err) => {
+  console.error(err.message);
+  process.exit(1);
+});
