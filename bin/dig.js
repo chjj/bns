@@ -34,7 +34,7 @@ async function resolve(name, type, host, port) {
 
 (async () => {
   const name = process.argv[2] || null;
-  const type = process.argv[3] || null;
+  const type = process.argv[3] || 'A';
   const host = process.argv[4] || null;
   const port = (process.argv[5] | 0) || null;
   const now = Date.now();
