@@ -28,6 +28,7 @@
     "webpack": "webpack --config webpack.config.js"
   },
   "dependencies": {
+    "bfile": "~0.0.2",
     "bheep": "~0.0.1",
     "binet": "~0.1.0",
     "bs32": "~0.0.1",
