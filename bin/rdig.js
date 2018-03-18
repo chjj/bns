@@ -2,22 +2,133 @@
 
 'use strict';
 
+const pkg = require('../package.json');
 const {RecursiveResolver} = require('../lib/resolver');
-const reverse = process.argv.indexOf('-x');
+const util = require('../lib/util');
 
-if (reverse !== -1)
-  process.argv.splice(reverse, 1);
+let name = null;
+let type = null;
+let host = null;
+let port = null;
+let inet6 = false;
+let reverse = false;
+let json = false;
+let rd = false;
+let edns = false;
+let dnssec = false;
+let nsec3 = false;
+let debug = false;
 
-async function resolve(name, type, host, port) {
-  const resolver = new RecursiveResolver('udp4');
+for (let i = 2; i < process.argv.length; i++) {
+  const arg = process.argv[i];
 
-  resolver.on('log', (...args) => {
-    console.error(...args);
-  });
+  if (arg.length === 0)
+    throw new Error(`Unexpected argument: ${arg}.`);
+
+  switch (arg) {
+    case '-4':
+      inet6 = false;
+      break;
+    case '-6':
+      inet6 = true;
+      break;
+    case '-x':
+      reverse = true;
+      break;
+    case '-p':
+      port = util.parseU16(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '-j':
+      json = true;
+      break;
+    case '-q':
+      name = arg;
+      break;
+    case '-t':
+      type = arg;
+      break;
+    case '-h':
+    case '--help':
+    case '-?':
+    case '-v':
+      console.log(`bns ${pkg.version}`);
+      process.exit(0);
+      break;
+    case '+edns':
+      edns = true;
+      break;
+    case '+noedns':
+      edns = false;
+      break;
+    case '+dnssec':
+      edns = true;
+      dnssec = true;
+      break;
+    case '+nodnssec':
+      dnssec = false;
+      break;
+    case '+rd':
+      rd = true;
+      break;
+    case '+nord':
+      rd = false;
+      break;
+    case '+nsec3':
+      nsec3 = true;
+      break;
+    case '+nonsec3':
+      nsec3 = false;
+      break;
+    case '+debug':
+      debug = true;
+      break;
+    case '+nodebug':
+      debug = false;
+      break;
+    default:
+      if (arg[0] === '@') {
+        host = arg.substring(1);
+        break;
+      }
+
+      if (!name) {
+        name = arg;
+        break;
+      }
+
+      if (!type) {
+        type = arg;
+        break;
+      }
+
+      throw new Error(`Unexpected argument: ${arg}.`);
+  }
+}
+
+if (!name)
+  name = '.';
+
+if (!type)
+  type = 'A';
+
+async function resolve(name, type, options) {
+  const resolver = new RecursiveResolver(options.inet6 ? 'udp6' : 'udp4');
+
+  resolver.rd = Boolean(options.rd);
+  resolver.edns = Boolean(options.edns);
+  resolver.dnssec = Boolean(options.dnssec);
+  resolver.nsec3 = Boolean(options.nsec3);
+
+  if (options.debug) {
+    resolver.on('log', (...args) => {
+      console.error(...args);
+    });
+  }
 
   await resolver.open();
 
-  if (reverse !== -1) {
+  if (options.reverse) {
     try {
       return await resolver.reverse(name);
     } finally {
@@ -33,15 +144,31 @@ async function resolve(name, type, host, port) {
 }
 
 (async () => {
-  const name = process.argv[2] || null;
-  const type = process.argv[3] || 'A';
-  const host = process.argv[4] || null;
-  const port = (process.argv[5] | 0) || null;
   const now = Date.now();
-  const res = await resolve(name, type, host, port);
+
+  const res = await resolve(name, type, {
+    host,
+    port,
+    inet6,
+    reverse,
+    rd,
+    edns,
+    dnssec,
+    nsec3,
+    debug
+  });
+
   const ms = Date.now() - now;
 
-  process.stdout.write(res.toString(ms) + '\n');
+  if (json) {
+    const text = JSON.stringify(res.toJSON(), null, 2);
+    process.stdout.write(text + '\n');
+  } else {
+    const argv = process.argv.slice(2).join(' ');
+    process.stdout.write('\n');
+    process.stdout.write(`; <<>> bns ${pkg.version} <<>> ${argv}\n`);
+    process.stdout.write(res.toString(ms) + '\n');
+  }
 })().catch((err) => {
   console.error(err.message);
   process.exit(1);
