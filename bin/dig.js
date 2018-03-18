@@ -2,14 +2,16 @@
 
 'use strict';
 
-const {OSResolver} = require('../lib/resolver');
+const {StubResolver} = require('../lib/resolver');
 const reverse = process.argv.indexOf('-x');
 
 if (reverse !== -1)
   process.argv.splice(reverse, 1);
 
 async function resolve(name, type, host, port) {
-  const resolver = new OSResolver('udp4');
+  const resolver = new StubResolver('udp4');
+
+  resolver.conf.fromSystem();
 
   resolver.on('log', (...args) => {
     console.error(...args);
