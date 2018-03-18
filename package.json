@@ -53,7 +53,7 @@
     "node": ">=7.6.0"
   },
   "browser": {
-    "./lib/crypto": "./lib/crypto.js"
+    "./lib/crypto": "./lib/crypto-browser.js"
   },
   "browserify": {
     "transform": [
