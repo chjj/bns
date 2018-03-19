@@ -16,7 +16,6 @@ let json = false;
 let rd = false;
 let edns = false;
 let dnssec = false;
-let nsec3 = false;
 let debug = false;
 
 for (let i = 2; i < process.argv.length; i++) {
@@ -74,12 +73,6 @@ for (let i = 2; i < process.argv.length; i++) {
     case '+nord':
       rd = false;
       break;
-    case '+nsec3':
-      nsec3 = true;
-      break;
-    case '+nonsec3':
-      nsec3 = false;
-      break;
     case '+debug':
       debug = true;
       break;
@@ -118,7 +111,6 @@ async function resolve(name, type, options) {
   resolver.rd = Boolean(options.rd);
   resolver.edns = Boolean(options.edns);
   resolver.dnssec = Boolean(options.dnssec);
-  resolver.nsec3 = Boolean(options.nsec3);
 
   if (options.debug) {
     resolver.on('log', (...args) => {
@@ -154,7 +146,6 @@ async function resolve(name, type, options) {
     rd,
     edns,
     dnssec,
-    nsec3,
     debug
   });
 
