@@ -161,6 +161,7 @@ async function resolve(name, type, options) {
     const argv = process.argv.slice(2).join(' ');
     process.stdout.write('\n');
     process.stdout.write(`; <<>> bns ${pkg.version} <<>> ${argv}\n`);
+    process.stdout.write(';; Got answer:\n');
     process.stdout.write(res.toString(ms) + '\n');
   }
 })().catch((err) => {
