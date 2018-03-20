@@ -2,7 +2,7 @@
   {
     "name": ".",
     "ttl": 172800,
-    "class": "INET",
+    "class": "IN",
     "type": "DS",
     "data": {
       "keyTag": 19036,
@@ -14,7 +14,7 @@
   {
     "name": ".",
     "ttl": 172800,
-    "class": "INET",
+    "class": "IN",
     "type": "DS",
     "data": {
       "keyTag": 20326,

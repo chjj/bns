@@ -114,6 +114,7 @@ async function lookup(name) {
 }
 
 async function resolve(name, type, options) {
+  const {host, port} = options;
   const resolver = new StubResolver(options.inet);
 
   resolver.rd = options.rd == null ? true : options.rd;
@@ -129,11 +130,6 @@ async function resolve(name, type, options) {
   }
 
   await resolver.open();
-
-  let {host, port} = options;
-
-  if (host && !util.isIP(host))
-    host = await lookup(host);
 
   if (options.reverse) {
     try {
@@ -153,6 +149,18 @@ async function resolve(name, type, options) {
 (async () => {
   const now = Date.now();
 
+  if (!json) {
+    const argv = process.argv.slice(2).join(' ');
+    process.stdout.write('\n');
+    process.stdout.write(`; <<>> bns ${pkg.version} <<>> ${argv}\n`);
+    if (host)
+      process.stdout.write('; (1 server found)\n');
+    process.stdout.write(';; global options: +cmd\n');
+  }
+
+  if (host && !util.isIP(host))
+    host = await lookup(host);
+
   const res = await resolve(name, type, {
     host,
     port,
@@ -170,13 +178,14 @@ async function resolve(name, type, options) {
     const text = JSON.stringify(res.toJSON(), null, 2);
     process.stdout.write(text + '\n');
   } else {
-    const argv = process.argv.slice(2).join(' ');
-    process.stdout.write('\n');
-    process.stdout.write(`; <<>> bns ${pkg.version} <<>> ${argv}\n`);
     process.stdout.write(';; Got answer:\n');
-    process.stdout.write(res.toString(ms) + '\n');
+    process.stdout.write(res.toString(ms, host, port) + '\n');
   }
 })().catch((err) => {
-  console.error(err.message);
-  process.exit(1);
+  if (json) {
+    console.error(err.message);
+    process.exit(1);
+  } else {
+    process.stdout.write(`;; ${err.message}\n`);
+  }
 });

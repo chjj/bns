@@ -33,14 +33,14 @@ server.on('query', (req, res, rinfo) => {
     return;
 
   for (const qs of req.question) {
-    if (qs.class !== classes.INET
+    if (qs.class !== classes.IN
         && qs.class !== classes.ANY) {
       continue;
     }
 
     const answer = new Record();
     answer.name = qs.name;
-    answer.class = classes.INET;
+    answer.class = classes.IN;
 
     if (qs.type === types.A || qs.type === types.ANY) {
       answer.type = types.A;
