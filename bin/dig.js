@@ -106,9 +106,9 @@ if (!type)
   type = 'A';
 
 async function lookup(name) {
-  const api = require('../lib/api');
-  const options = { all: true, hints: api.ADDRCONFIG };
-  const addrs = await api.lookup(host, options);
+  const dns = require('../lib/dns');
+  const options = { all: true, hints: dns.ADDRCONFIG };
+  const addrs = await dns.lookup(host, options);
   const {address} = util.randomItem(addrs);
   return address;
 }
