@@ -10,7 +10,7 @@ let name = null;
 let type = null;
 let host = null;
 let port = null;
-let inet6 = false;
+let inet = null;
 let reverse = false;
 let json = false;
 let rd = true;
@@ -26,10 +26,10 @@ for (let i = 2; i < process.argv.length; i++) {
 
   switch (arg) {
     case '-4':
-      inet6 = false;
+      inet = 'udp4';
       break;
     case '-6':
-      inet6 = true;
+      inet = 'udp6';
       break;
     case '-x':
       reverse = true;
@@ -105,9 +105,16 @@ if (!name)
 if (!type)
   type = 'A';
 
+async function lookup(name) {
+  const api = require('../lib/api');
+  const options = { all: true, hints: api.ADDRCONFIG };
+  const addrs = await api.lookup(host, options);
+  const {address} = util.randomItem(addrs);
+  return address;
+}
+
 async function resolve(name, type, options) {
-  const {host, port} = options;
-  const resolver = new StubResolver(options.inet6 ? 'udp6' : 'udp4');
+  const resolver = new StubResolver(options.inet);
 
   resolver.rd = options.rd == null ? true : options.rd;
   resolver.edns = Boolean(options.edns);
@@ -122,6 +129,11 @@ async function resolve(name, type, options) {
   }
 
   await resolver.open();
+
+  let {host, port} = options;
+
+  if (host && !util.isIP(host))
+    host = await lookup(host);
 
   if (options.reverse) {
     try {
@@ -144,7 +156,7 @@ async function resolve(name, type, options) {
   const res = await resolve(name, type, {
     host,
     port,
-    inet6,
+    inet,
     reverse,
     rd,
     edns,

@@ -10,7 +10,7 @@ let name = null;
 let type = null;
 let host = null;
 let port = null;
-let inet6 = false;
+let inet = null;
 let reverse = false;
 let json = false;
 let rd = false;
@@ -26,10 +26,10 @@ for (let i = 2; i < process.argv.length; i++) {
 
   switch (arg) {
     case '-4':
-      inet6 = false;
+      inet = 'udp4';
       break;
     case '-6':
-      inet6 = true;
+      inet = 'udp6';
       break;
     case '-x':
       reverse = true;
@@ -106,7 +106,7 @@ if (!type)
   type = 'A';
 
 async function resolve(name, type, options) {
-  const resolver = new RecursiveResolver(options.inet6 ? 'udp6' : 'udp4');
+  const resolver = new RecursiveResolver(options.inet);
 
   resolver.rd = Boolean(options.rd);
   resolver.edns = Boolean(options.edns);
@@ -141,7 +141,7 @@ async function resolve(name, type, options) {
   const res = await resolve(name, type, {
     host,
     port,
-    inet6,
+    inet,
     reverse,
     rd,
     edns,

@@ -15,7 +15,7 @@ const {
   opcodes
 } = wire;
 
-const server = new DNSServer('udp6');
+const server = new DNSServer();
 
 server.on('error', (err) => {
   console.error(err.stack);
@@ -70,6 +70,4 @@ server.on('listening', () => {
   console.log(`Server listening on ${address}:${port}.`);
 });
 
-// $ dig @127.0.0.1 google.com A -p 5300
-// $ node bin/dig.js google.com A 127.0.0.1 5300
-server.open(5300, '::');
+server.open(5300, '127.0.0.1');
