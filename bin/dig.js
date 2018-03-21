@@ -2,15 +2,16 @@
 
 'use strict';
 
+const IP = require('binet');
 const pkg = require('../package.json');
-const {StubResolver} = require('../lib/resolver');
+const dns = require('../lib/dns');
 const util = require('../lib/util');
 
 let name = null;
 let type = null;
 let host = null;
-let port = null;
-let inet = null;
+let port = 53;
+let inet6 = null;
 let reverse = false;
 let json = false;
 let rd = true;
@@ -26,10 +27,10 @@ for (let i = 2; i < process.argv.length; i++) {
 
   switch (arg) {
     case '-4':
-      inet = 'udp4';
+      inet6 = false;
       break;
     case '-6':
-      inet = 'udp6';
+      inet6 = true;
       break;
     case '-x':
       reverse = true;
@@ -106,7 +107,6 @@ if (!type)
   type = 'A';
 
 async function lookup(name) {
-  const dns = require('../lib/dns');
   const options = { all: true, hints: dns.ADDRCONFIG };
   const addrs = await dns.lookup(host, options);
   const {address} = util.randomItem(addrs);
@@ -115,14 +115,7 @@ async function lookup(name) {
 
 async function resolve(name, type, options) {
   const {host, port} = options;
-  const resolver = new StubResolver(options.inet);
-
-  resolver.rd = options.rd == null ? true : options.rd;
-  resolver.edns = Boolean(options.edns);
-  resolver.dnssec = Boolean(options.dnssec);
-
-  resolver.conf.fromSystem();
-  resolver.hosts.fromSystem();
+  const resolver = new dns.Resolver(options);
 
   if (options.debug) {
     resolver.on('log', (...args) => {
@@ -130,21 +123,15 @@ async function resolve(name, type, options) {
     });
   }
 
-  await resolver.open();
-
-  if (options.reverse) {
-    try {
-      return await resolver.reverse(name, port, host);
-    } finally {
-      await resolver.close();
-    }
+  if (host) {
+    const server = IP.toHost(host, port);
+    resolver.setServers([server]);
   }
 
-  try {
-    return await resolver.lookup(name, type, port, host);
-  } finally {
-    await resolver.close();
-  }
+  if (options.reverse)
+    return resolver.reverseRaw(name);
+
+  return resolver.resolveRaw(name, type);
 }
 
 function printHeader(host) {
@@ -165,7 +152,7 @@ function printHeader(host) {
   const res = await resolve(name, type, {
     host,
     port,
-    inet,
+    inet6,
     reverse,
     rd,
     edns,

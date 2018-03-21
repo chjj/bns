@@ -3,13 +3,13 @@
 'use strict';
 
 const pkg = require('../package.json');
-const dns = require('../lib/rdns');
+const rdns = require('../lib/rdns');
 const util = require('../lib/util');
 
 let name = null;
 let type = null;
 let host = null;
-let port = null;
+let port = 53;
 let inet6 = null;
 let reverse = false;
 let json = false;
@@ -106,7 +106,7 @@ if (!type)
   type = 'A';
 
 async function resolve(name, type, options) {
-  const resolver = new dns.Resolver(options);
+  const resolver = new rdns.Resolver(options);
 
   if (options.debug) {
     resolver.on('log', (...args) => {
