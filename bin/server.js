@@ -2,7 +2,7 @@
 
 'use strict';
 
-const {DNSServer} = require('../lib/server');
+const DNSServer = require('../lib/server/dns');
 const wire = require('../lib/wire');
 const util = require('../lib/util');
 

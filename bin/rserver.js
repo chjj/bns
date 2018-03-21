@@ -2,8 +2,10 @@
 
 'use strict';
 
-const {RecursiveServer} = require('../lib/server');
+const RecursiveServer = require('../lib/server/recursive');
 const server = new RecursiveServer();
+
+server.hints.fromRoot();
 
 server.on('error', (err) => {
   console.error(err.stack);
