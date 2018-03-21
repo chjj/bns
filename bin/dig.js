@@ -147,6 +147,15 @@ async function resolve(name, type, options) {
   }
 }
 
+function printHeader(host) {
+  const argv = process.argv.slice(2).join(' ');
+  process.stdout.write('\n');
+  process.stdout.write(`; <<>> dig.js ${pkg.version} <<>> ${argv}\n`);
+  if (host)
+    process.stdout.write('; (1 server found)\n');
+  process.stdout.write(';; global options: +cmd\n');
+}
+
 (async () => {
   if (host && !util.isIP(host))
     host = await lookup(host);
@@ -170,12 +179,7 @@ async function resolve(name, type, options) {
     const text = JSON.stringify(res.toJSON(), null, 2);
     process.stdout.write(text + '\n');
   } else {
-    const argv = process.argv.slice(2).join(' ');
-    process.stdout.write('\n');
-    process.stdout.write(`; <<>> dig.js ${pkg.version} <<>> ${argv}\n`);
-    if (host)
-      process.stdout.write('; (1 server found)\n');
-    process.stdout.write(';; global options: +cmd\n');
+    printHeader(host);
     process.stdout.write(';; Got answer:\n');
     process.stdout.write(res.toString(ms, host, port) + '\n');
   }
@@ -184,6 +188,7 @@ async function resolve(name, type, options) {
     console.error(err.message);
     process.exit(1);
   } else {
-    process.stdout.write(`;; ${err.message}\n`);
+    printHeader(host);
+    process.stdout.write(`;; error; ${err.message}\n`);
   }
 });

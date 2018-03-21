@@ -3,14 +3,14 @@
 'use strict';
 
 const pkg = require('../package.json');
-const {RecursiveResolver} = require('../lib/resolver');
+const dns = require('../lib/rdns');
 const util = require('../lib/util');
 
 let name = null;
 let type = null;
 let host = null;
 let port = null;
-let inet = null;
+let inet6 = null;
 let reverse = false;
 let json = false;
 let rd = false;
@@ -26,10 +26,10 @@ for (let i = 2; i < process.argv.length; i++) {
 
   switch (arg) {
     case '-4':
-      inet = 'udp4';
+      inet6 = false;
       break;
     case '-6':
-      inet = 'udp6';
+      inet6 = true;
       break;
     case '-x':
       reverse = true;
@@ -106,11 +106,7 @@ if (!type)
   type = 'A';
 
 async function resolve(name, type, options) {
-  const resolver = new RecursiveResolver(options.inet);
-
-  resolver.rd = Boolean(options.rd);
-  resolver.edns = Boolean(options.edns);
-  resolver.dnssec = Boolean(options.dnssec);
+  const resolver = new dns.Resolver(options);
 
   if (options.debug) {
     resolver.on('log', (...args) => {
@@ -118,21 +114,19 @@ async function resolve(name, type, options) {
     });
   }
 
-  await resolver.open();
+  if (options.reverse)
+    return resolver.reverseRaw(name);
 
-  if (options.reverse) {
-    try {
-      return await resolver.reverse(name);
-    } finally {
-      await resolver.close();
-    }
-  }
+  return resolver.resolveRaw(name, type);
+}
 
-  try {
-    return await resolver.lookup(name, type);
-  } finally {
-    await resolver.close();
-  }
+function printHeader(host) {
+  const argv = process.argv.slice(2).join(' ');
+  process.stdout.write('\n');
+  process.stdout.write(`; <<>> rdig.js ${pkg.version} <<>> ${argv}\n`);
+  if (host)
+    process.stdout.write('; (1 server found)\n');
+  process.stdout.write(';; global options: +cmd\n');
 }
 
 (async () => {
@@ -141,7 +135,7 @@ async function resolve(name, type, options) {
   const res = await resolve(name, type, {
     host,
     port,
-    inet,
+    inet6,
     reverse,
     rd,
     edns,
@@ -155,12 +149,7 @@ async function resolve(name, type, options) {
     const text = JSON.stringify(res.toJSON(), null, 2);
     process.stdout.write(text + '\n');
   } else {
-    const argv = process.argv.slice(2).join(' ');
-    process.stdout.write('\n');
-    process.stdout.write(`; <<>> rdig.js ${pkg.version} <<>> ${argv}\n`);
-    if (host)
-      process.stdout.write('; (1 server found)\n');
-    process.stdout.write(';; global options: +cmd\n');
+    printHeader(host);
     process.stdout.write(';; Got answer:\n');
     process.stdout.write(res.toString(ms) + '\n');
   }
@@ -169,6 +158,7 @@ async function resolve(name, type, options) {
     console.error(err.message);
     process.exit(1);
   } else {
-    process.stdout.write(`;; ${err.message}\n`);
+    printHeader(host);
+    process.stdout.write(`;; error; ${err.message}\n`);
   }
 });
