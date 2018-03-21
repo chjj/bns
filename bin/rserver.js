@@ -3,7 +3,12 @@
 'use strict';
 
 const RecursiveServer = require('../lib/server/recursive');
-const server = new RecursiveServer();
+
+const server = new RecursiveServer({
+  inet6: null,
+  edns: true,
+  dnssec: true
+});
 
 server.hints.fromRoot();
 

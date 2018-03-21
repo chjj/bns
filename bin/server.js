@@ -15,7 +15,11 @@ const {
   opcodes
 } = wire;
 
-const server = new DNSServer();
+const server = new DNSServer({
+  inet6: null,
+  edns: true,
+  dnssec: true
+});
 
 server.on('error', (err) => {
   console.error(err.stack);
