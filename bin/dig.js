@@ -118,6 +118,10 @@ async function resolve(name, type, options) {
   const resolver = new dns.Resolver(options);
 
   if (options.debug) {
+    resolver.on('error', (err) => {
+      console.error(err.stack);
+    });
+
     resolver.on('log', (...args) => {
       console.error(...args);
     });
