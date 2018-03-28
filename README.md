@@ -1,47 +1,84 @@
 # bns
 
-DNS library and recursive resolver for node.js, in pure javascript.
+DNS library and validating recursive resolver for node.js, in pure javascript.
 
 ## Example
 
 ``` bash
-$ ./bin/rdig.js google.com
-Querying google.com./255.
+$ rdig.js www.ietf.org +dnssec +debug
+Querying www.ietf.org./A.
 Verifying zone change to [.]
 Checking signatures...
+Retrying over TCP (2001:503:ba3e::2:30): 19235.
 Validated DNSSEC signatures.
-Switching authority: [192.41.162.30] (c.gtld-servers.net.)
-Switching zone: [.->com.]
-Verifying zone change to [com.]
+Switching authority: [2001:500:40::1] (d0.org.afilias-nst.org.)
+Switching zone: [.->org.]
+Verifying zone change to [org.]
 Checking signatures...
 Validated DNSSEC signatures.
-Switching authority: [216.239.36.10] (ns3.google.com.)
-Switching zone: [com.->google.com.]
+Looking up NS: ns1.mia1.afilias-nst.info.
+Looking up IPv6 nameserver for ns1.mia1.afilias-nst.info....
+Querying ns1.mia1.afilias-nst.info./AAAA.
+Verifying zone change to [.]
+Checking signatures...
+Cache hit for ./DNSKEY.
+Validated DNSSEC signatures.
+Switching authority: [199.254.48.1] (b0.info.afilias-nst.org.)
+Switching zone: [.->info.]
+Verifying zone change to [info.]
+Checking signatures...
+Validated DNSSEC signatures.
+Validated NSEC3 delegation.
+Switching authority: [2a01:8840:6::1] (d0.dig.afilias-nst.info.)
+Switching zone: [info.->afilias-nst.info.]
 Trust chain broken due to zone change.
-Traversed zones: ., com., google.com. for google.com./255.
-Finishing resolving google.com./255 (hops=2).
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 0
-;; flags: qr ra, QUERY: 1, ANSWER: 15, AUTHORITY: 0, ADDITIONAL: 0
+Traversed zones: ., info., afilias-nst.info. for ns1.mia1.afilias-nst.info./AAAA.
+Picked nameserver: 2a01:8840:7::1.
+Switching authority: [2a01:8840:7::1] (ns1.mia1.afilias-nst.info.)
+Switching zone: [org.->ietf.org.]
+Verifying zone change to [ietf.org.]
+Checking signatures...
+Validated DNSSEC signatures.
+Found alias to: www.ietf.org.cdn.cloudflare.net.
+Alias changing zone: [ietf.org.->.]
+Verifying zone change to [.]
+Checking signatures...
+Cache hit for ./DNSKEY.
+Validated DNSSEC signatures.
+Switching authority: [192.54.112.30] (l.gtld-servers.net.)
+Switching zone: [.->net.]
+Verifying zone change to [net.]
+Checking signatures...
+Validated DNSSEC signatures.
+Switching authority: [2400:cb00:2049:1::c629:de1f] (ns5.cloudflare.net.)
+Switching zone: [net.->cloudflare.net.]
+Verifying zone change to [cloudflare.net.]
+Checking signatures...
+Validated DNSSEC signatures.
+Traversed zones: ., org., ietf.org., ., net., cloudflare.net. for www.ietf.org./A.
+Finishing resolving www.ietf.org./A (hops=8).
 
+; <<>> rdig.js 0.0.5 <<>> www.ietf.org +dnssec +debug
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 28579
+;; flags: qr ra ad, QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do, udp: 512
 ;; QUESTION SECTION:
-; google.com. IN ANY
+;www.ietf.org. IN A
 
 ;; ANSWER SECTION:
-google.com. 300 IN A 172.217.0.46
-google.com. 300 IN AAAA 2607:f8b0:4005:802::200e
-google.com. 300 IN TXT "docusign=05958488-4752-4ef2-95eb-aa7ba8a3bd0e"
-google.com. 600 IN MX 20 alt1.aspmx.l.google.com.
-google.com. 345600 IN NS ns1.google.com.
-google.com. 3600 IN TXT "v=spf1 include:_spf.google.com ~all"
-google.com. 600 IN MX 40 alt3.aspmx.l.google.com.
-google.com. 345600 IN NS ns3.google.com.
-google.com. 600 IN MX 30 alt2.aspmx.l.google.com.
-google.com. 86400 IN CAA 0 issue "pki.goog"
-google.com. 600 IN MX 50 alt4.aspmx.l.google.com.
-google.com. 60 IN SOA ns1.google.com. dns-admin.google.com. 188478103 900 900 1800 60
-google.com. 600 IN MX 10 aspmx.l.google.com.
-google.com. 345600 IN NS ns2.google.com.
-google.com. 345600 IN NS ns4.google.com.
+www.ietf.org. 1800 IN CNAME www.ietf.org.cdn.cloudflare.net.
+www.ietf.org. 1800 IN RRSIG CNAME 5 3 1800 20190214160829 20180214150920 40452 ietf.org. OAS6hbpld1KpNJBpqg/T+0m0FpcVV933AbsDuVlgloHQfyVG4Ug5iOtK QLKGNYw+583Ba1yhFlFsYu4GNALZFpF8Tw5NcmxpmXJyzpeO0aj1rSCH oFQzYaIszrbw7TmE2pYQbh9QeklO9hILxi/Q1D7VxzrtHj0Ff8ncgFI7 6Ep+ud0Gysr0m/5MrwO69LGPV06LTuMRP3cXv7hqbjmyn2CmYR3h6+lQ +uiHSwkZYK20xhk+w1pOP9CD6fIqGYCJiKVaMY8K2lMQyi6Ppx0zOmtk MdaJjnxrzQ5TXbCcGQ48Rn4hzdug1MvkJzh1DGWZH6ZnPQTEf3+O1ehz +zSpbQ==  ; alg = RSASHA1
+www.ietf.org.cdn.cloudflare.net. 300 IN A 104.20.1.85
+www.ietf.org.cdn.cloudflare.net. 300 IN A 104.20.0.85
+www.ietf.org.cdn.cloudflare.net. 300 IN RRSIG A 13 6 300 20180329050317 20180327030317 35273 cloudflare.net. cp0elWqesQt1uNBhyhRd7Zpks7UzVc0xSqxTKBsKnpb7WWgdqZD/kq+s JWTE+POxzoJ2jSUhFSjWL4C+7o24KQ==  ; alg = ECDSAP256SHA256
+
+;; Query time: 766 msec
+;; WHEN: Tue Mar 27 21:03:03 PDT 2018
+;; MSG SIZE  rcvd: 641
 ```
 
 ## Usage
