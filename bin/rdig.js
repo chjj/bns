@@ -16,6 +16,7 @@ let json = false;
 let rd = false;
 let edns = false;
 let dnssec = false;
+let short = false;
 let debug = false;
 
 for (let i = 2; i < process.argv.length; i++) {
@@ -72,6 +73,18 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '+nord':
       rd = false;
+      break;
+    case '+json':
+      json = true;
+      break;
+    case '+nojson':
+      json = false;
+      break;
+    case '+short':
+      short = true;
+      break;
+    case '+noshort':
+      short = false;
       break;
     case '+debug':
       debug = true;
@@ -153,16 +166,24 @@ function printHeader(host) {
     const text = JSON.stringify(res.toJSON(), null, 2);
     process.stdout.write(text + '\n');
   } else {
-    printHeader(host);
-    process.stdout.write(';; Got answer:\n');
-    process.stdout.write(res.toString(ms) + '\n');
+    if (short) {
+      process.stdout.write(res.toShort(name, type));
+    } else {
+      printHeader(host);
+      process.stdout.write(';; Got answer:\n');
+      process.stdout.write(res.toString(ms) + '\n');
+    }
   }
 })().catch((err) => {
   if (json) {
     console.error(err.message);
     process.exit(1);
   } else {
-    printHeader(host);
-    process.stdout.write(`;; error; ${err.message}\n`);
+    if (short) {
+      process.stdout.write(err.message + '\n');
+    } else {
+      printHeader(host);
+      process.stdout.write(`;; error; ${err.message}\n`);
+    }
   }
 });
