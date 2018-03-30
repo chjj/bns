@@ -2,76 +2,106 @@
 
 'use strict';
 
-const DNSServer = require('../lib/server/dns');
-const wire = require('../lib/wire');
+const pkg = require('../package.json');
+const StubServer = require('../lib/server/stub');
 const util = require('../lib/util');
 
-const {
-  Record,
-  ARecord,
-  AAAARecord,
-  types,
-  classes,
-  opcodes
-} = wire;
+let host = '127.0.0.1';
+let port = 53;
+let inet6 = null;
+let edns = null;
+let dnssec = null;
+let debug = false;
 
-const server = new DNSServer({
-  inet6: null,
-  edns: true,
-  dnssec: true
+for (let i = 2; i < process.argv.length; i++) {
+  const arg = process.argv[i];
+
+  if (arg.length === 0)
+    throw new Error(`Unexpected argument: ${arg}.`);
+
+  switch (arg) {
+    case '-4':
+      inet6 = false;
+      break;
+    case '-6':
+      inet6 = true;
+      break;
+    case '-p':
+      port = util.parseU16(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '-h':
+    case '--help':
+    case '-?':
+    case '-v':
+      console.log(`server.js ${pkg.version}`);
+      process.exit(0);
+      break;
+    case '+edns':
+      edns = true;
+      break;
+    case '+noedns':
+      edns = false;
+      break;
+    case '+dnssec':
+      edns = true;
+      dnssec = true;
+      break;
+    case '+nodnssec':
+      dnssec = false;
+      break;
+    case '+debug':
+      debug = true;
+      break;
+    case '+nodebug':
+      debug = false;
+      break;
+    default:
+      if (arg[0] === '@') {
+        host = arg.substring(1);
+        break;
+      }
+
+      throw new Error(`Unexpected argument: ${arg}.`);
+  }
+}
+
+const server = new StubServer({
+  inet6,
+  edns,
+  dnssec
 });
+
+server.conf.fromSystem();
+server.hosts.fromSystem();
 
 server.on('error', (err) => {
   console.error(err.stack);
 });
 
-server.on('log', (...args) => {
-  console.error(...args);
-});
+if (debug) {
+  server.on('log', (...args) => {
+    console.error(...args);
+  });
 
-server.on('query', (req, res, rinfo) => {
-  if (req.opcode !== opcodes.QUERY)
-    return;
+  server.on('query', (req, res, rinfo) => {
+    console.error('');
+    console.error('Rinfo:');
+    console.error('Address: %s, Port: %d, TCP: %s',
+      rinfo.address, rinfo.port, rinfo.tcp);
 
-  if (req.question.length === 0)
-    return;
+    console.error('');
+    console.error('Request:');
+    console.error(req.toString());
 
-  for (const qs of req.question) {
-    if (qs.class !== classes.IN
-        && qs.class !== classes.ANY) {
-      continue;
-    }
-
-    const answer = new Record();
-    answer.name = qs.name;
-    answer.class = classes.IN;
-
-    if (qs.type === types.A || qs.type === types.ANY) {
-      answer.type = types.A;
-      answer.data = new ARecord();
-    } else if (qs.type === types.AAAA) {
-      answer.type = types.AAAA;
-      answer.data = new AAAARecord();
-    } else {
-      continue;
-    }
-
-    res.answer.push(answer);
-  }
-
-  console.log('Rinfo:');
-  util.dir(rinfo);
-  console.log('Request:');
-  util.dir(req);
-  console.log('Response:');
-  util.dir(res);
-
-  res.send();
-});
+    console.error('Response:');
+    console.error(res.toString());
+  });
+}
 
 server.on('listening', () => {
   const {address, port} = server.address();
   console.log(`Server listening on ${address}:${port}.`);
 });
 
-server.open(5300, '127.0.0.1');
+server.open(port, host);
