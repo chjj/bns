@@ -8,6 +8,8 @@ const util = require('../lib/util');
 
 let host = '127.0.0.1';
 let port = 53;
+let confFile = null;
+let hostsFile = null;
 let inet6 = null;
 let edns = null;
 let dnssec = null;
@@ -28,6 +30,14 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '-p':
       port = util.parseU16(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '--conf':
+      confFile = process.argv[i + 1];
+      i += 1;
+      break;
+    case '--hosts':
+      hostsFile = process.argv[i + 1];
       i += 1;
       break;
     case '-h':
@@ -72,8 +82,15 @@ const server = new StubServer({
   dnssec
 });
 
-server.conf.fromSystem();
-server.hosts.fromSystem();
+if (confFile)
+  server.conf.fromFile(confFile);
+else
+  server.conf.fromSystem();
+
+if (hostsFile)
+  server.hosts.fromFile(hostsFile);
+else
+  server.hosts.fromSystem();
 
 server.on('error', (err) => {
   console.error(err.stack);

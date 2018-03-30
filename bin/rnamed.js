@@ -8,6 +8,7 @@ const util = require('../lib/util');
 
 let host = '127.0.0.1';
 let port = 53;
+let hintsFile = null;
 let inet6 = null;
 let edns = null;
 let dnssec = null;
@@ -28,6 +29,10 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '-p':
       port = util.parseU16(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '--hints':
+      hintsFile = process.argv[i + 1];
       i += 1;
       break;
     case '-h':
@@ -72,7 +77,10 @@ const server = new RecursiveServer({
   dnssec
 });
 
-server.hints.fromRoot();
+if (hintsFile)
+  server.hints.fromFile(hintsFile);
+else
+  server.hints.fromRoot();
 
 server.on('error', (err) => {
   console.error(err.stack);

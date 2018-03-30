@@ -5,12 +5,16 @@
 const IP = require('binet');
 const pkg = require('../package.json');
 const dns = require('../lib/dns');
+const Hosts = require('../lib/hosts');
+const ResolvConf = require('../lib/resolvconf');
 const util = require('../lib/util');
 
 let name = null;
 let type = null;
 let host = null;
 let port = 53;
+let conf = null;
+let hosts = null;
 let inet6 = null;
 let reverse = false;
 let json = false;
@@ -48,6 +52,14 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '-t':
       type = arg;
+      break;
+    case '--conf':
+      conf = ResolvConf.fromFile(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '--hosts':
+      hosts = Hosts.fromFile(process.argv[i + 1]);
+      i += 1;
       break;
     case '-h':
     case '--help':
@@ -169,6 +181,8 @@ function printHeader(host) {
   const res = await resolve(name, type, {
     host,
     port,
+    conf,
+    hosts,
     inet6,
     reverse,
     rd,
@@ -193,11 +207,11 @@ function printHeader(host) {
   }
 })().catch((err) => {
   if (json) {
-    console.error(err.message);
+    process.stdout.error(err.message + '\n');
     process.exit(1);
   } else {
     if (short) {
-      process.stdout.write(err.message + '\n');
+      process.stdout.error(err.message + '\n');
     } else {
       printHeader(host);
       process.stdout.write(`;; error; ${err.message}\n`);

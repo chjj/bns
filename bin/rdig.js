@@ -3,6 +3,8 @@
 'use strict';
 
 const pkg = require('../package.json');
+const dns = require('../lib/dns');
+const Hints = require('../lib/hints');
 const rdns = require('../lib/rdns');
 const util = require('../lib/util');
 
@@ -10,6 +12,8 @@ let name = null;
 let type = null;
 let host = null;
 let port = 53;
+let hints = null;
+let anchors = null;
 let inet6 = null;
 let reverse = false;
 let json = false;
@@ -47,6 +51,18 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '-t':
       type = arg;
+      break;
+    case '--hints':
+      hints = Hints.fromFile(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '--anchor':
+      if (process.argv[i + 1]) {
+        if (!anchors)
+          anchors = [];
+        anchors.push(process.argv[i + 1]);
+      }
+      i += 1;
       break;
     case '-h':
     case '--help':
@@ -118,6 +134,14 @@ if (!name)
 if (!type)
   type = 'A';
 
+async function lookup(name) {
+  const options = { all: true, hints: dns.ADDRCONFIG };
+  const addrs = await dns.lookup(host, options);
+  const inet4 = addrs.filter(addr => addr.family === 4);
+  const {address} = util.randomItem(inet4);
+  return address;
+}
+
 async function resolve(name, type, options) {
   const resolver = new rdns.Resolver(options);
 
@@ -147,11 +171,29 @@ function printHeader(host) {
 }
 
 (async () => {
+  let ns = 'hints.local.';
+
+  if (host && !util.isIP(host)) {
+    ns = host;
+    host = await lookup(host);
+  }
+
+  if (host && !hints) {
+    hints = new Hints();
+    hints.addServer(ns, host);
+    if (anchors) {
+      for (const ds of anchors)
+        hints.addAnchor(ds);
+    }
+  }
+
+  if (hints)
+    hints.port = port;
+
   const now = Date.now();
 
   const res = await resolve(name, type, {
-    host,
-    port,
+    hints,
     inet6,
     reverse,
     rd,
@@ -176,11 +218,11 @@ function printHeader(host) {
   }
 })().catch((err) => {
   if (json) {
-    console.error(err.message);
+    process.stdout.error(err.message + '\n');
     process.exit(1);
   } else {
     if (short) {
-      process.stdout.write(err.message + '\n');
+      process.stdout.error(err.message + '\n');
     } else {
       printHeader(host);
       process.stdout.write(`;; error; ${err.message}\n`);
