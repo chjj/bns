@@ -34,7 +34,7 @@ for (let i = 2; i < process.argv.length; i++) {
     case '--help':
     case '-?':
     case '-v':
-      console.log(`rserver.js ${pkg.version}`);
+      console.log(`rnamed.js ${pkg.version}`);
       process.exit(0);
       break;
     case '+edns':

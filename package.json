@@ -18,7 +18,9 @@
   "main": "./lib/bns.js",
   "bin": {
     "dig.js": "./bin/dig.js",
-    "rdig.js": "./bin/rdig.js"
+    "rdig.js": "./bin/rdig.js",
+    "named.js": "./bin/named.js",
+    "rnamed.js": "./bin/rnamed.js"
   },
   "scripts": {
     "browserify": "browserify -s bns lib/bns.js | uglifyjs -c > bns.js",
