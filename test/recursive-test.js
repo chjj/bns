@@ -25,7 +25,9 @@ const nxNames = [
   'ww.dnssec-name-and-shame.com',
   'ww.getdnsapi.net',
   'ww.nlnet.nl',
-  'ww.opendnssec.org'
+  'ww.opendnssec.org',
+  'nxdomain1234567890.be',
+  'nx.nxdomain1234567890.be'
 ];
 
 const nodataNames = [
