@@ -5,6 +5,7 @@
 const IP = require('binet');
 const pkg = require('../package.json');
 const dns = require('../lib/dns');
+const encoding = require('../lib/encoding');
 const Hosts = require('../lib/hosts');
 const ResolvConf = require('../lib/resolvconf');
 const util = require('../lib/util');
@@ -84,14 +85,14 @@ for (let i = 2; i < process.argv.length; i++) {
     case '+rd':
       rd = true;
       break;
+    case '+nord':
+      rd = false;
+      break;
     case '+json':
       json = true;
       break;
     case '+nojson':
       json = false;
-      break;
-    case '+nord':
-      rd = false;
       break;
     case '+short':
       short = true;
@@ -157,9 +158,6 @@ async function resolve(name, type, options) {
     resolver.setServers([server]);
   }
 
-  if (options.reverse)
-    return resolver.reverseRaw(name);
-
   return resolver.resolveRaw(name, type);
 }
 
@@ -176,6 +174,11 @@ function printHeader(host) {
   if (host && !util.isIP(host))
     host = await lookup(host);
 
+  if (reverse) {
+    name = encoding.reverse(name);
+    type = 'PTR';
+  }
+
   const now = Date.now();
 
   const res = await resolve(name, type, {
@@ -184,7 +187,6 @@ function printHeader(host) {
     conf,
     hosts,
     inet6,
-    reverse,
     rd,
     edns,
     dnssec,
@@ -206,12 +208,15 @@ function printHeader(host) {
     }
   }
 })().catch((err) => {
+  if (debug)
+    process.stderr.write(err.stack + '\n');
+
   if (json) {
-    process.stdout.error(err.message + '\n');
+    process.stderr.write(err.message + '\n');
     process.exit(1);
   } else {
     if (short) {
-      process.stdout.error(err.message + '\n');
+      process.stderr.write(err.message + '\n');
     } else {
       printHeader(host);
       process.stdout.write(`;; error; ${err.message}\n`);

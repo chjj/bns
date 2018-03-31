@@ -4,6 +4,7 @@
 
 const pkg = require('../package.json');
 const dns = require('../lib/dns');
+const encoding = require('../lib/encoding');
 const Hints = require('../lib/hints');
 const rdns = require('../lib/rdns');
 const util = require('../lib/util');
@@ -155,9 +156,6 @@ async function resolve(name, type, options) {
     });
   }
 
-  if (options.reverse)
-    return resolver.reverseRaw(name);
-
   return resolver.resolveRaw(name, type);
 }
 
@@ -190,12 +188,16 @@ function printHeader(host) {
   if (hints)
     hints.port = port;
 
+  if (reverse) {
+    name = encoding.reverse(name);
+    type = 'PTR';
+  }
+
   const now = Date.now();
 
   const res = await resolve(name, type, {
     hints,
     inet6,
-    reverse,
     rd,
     edns,
     dnssec,
@@ -217,12 +219,15 @@ function printHeader(host) {
     }
   }
 })().catch((err) => {
+  if (debug)
+    process.stderr.write(err.stack + '\n');
+
   if (json) {
-    process.stdout.error(err.message + '\n');
+    process.stderr.write(err.message + '\n');
     process.exit(1);
   } else {
     if (short) {
-      process.stdout.error(err.message + '\n');
+      process.stderr.write(err.message + '\n');
     } else {
       printHeader(host);
       process.stdout.write(`;; error; ${err.message}\n`);
