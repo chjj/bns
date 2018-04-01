@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+const read = require('./read');
+const wire = require('../lib/wire');
+const {Record} = wire;
+
+read(async (input) => {
+  const items = JSON.parse(input);
+
+  if (!Array.isArray(items))
+    throw new Error('Not a zone.');
+
+  const zone = [];
+
+  for (const json of items) {
+    const rr = Record.fromJSON(json);
+    zone.push(rr);
+  }
+
+  const str = wire.toZone(zone);
+
+  process.stdout.write(str);
+});

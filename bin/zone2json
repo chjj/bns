@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+const read = require('./read');
+const wire = require('../lib/wire');
+
+read(async (input) => {
+  const zone = wire.fromZone(input);
+  const json = [];
+
+  for (const rr of zone)
+    json.push(rr.toJSON());
+
+  const str = JSON.stringify(json, null, 2);
+
+  process.stdout.write(str + '\n');
+});

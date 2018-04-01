@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+const read = require('./read');
+const {Message} = require('../lib/wire');
+
+const now = Date.now();
+
+read(async (input) => {
+  const json = JSON.parse(input);
+  const msg = Message.fromJSON(json);
+  const str = msg.toString(now);
+
+  process.stdout.write(str + '\n');
+});

@@ -9,8 +9,6 @@ const Hints = require('../lib/hints');
 const rdns = require('../lib/rdns');
 const util = require('../lib/util');
 
-const {Message} = require('../lib/wire');
-
 let name = null;
 let type = null;
 let host = null;
@@ -216,9 +214,6 @@ function printHeader(host) {
       printHeader(host);
       process.stdout.write(';; Got answer:\n');
       process.stdout.write(res.toString(now, host, port) + '\n');
-      const str = res.toString(now, host, port);
-      const msg = Message.fromString(str);
-      process.stdout.write(msg.toString(now, host, port) + '\n');
     }
   }
 })().catch((err) => {
