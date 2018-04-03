@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict';
+
 const read = require('./read');
 const wire = require('../lib/wire');
 const {Record} = wire;
