@@ -41,7 +41,7 @@ async function _read(callback) {
   try {
     await callback(await readInput());
   } catch (e) {
-    stderr.write(e.message + '\n');
+    stderr.write(e.stack + '\n');
     exit(1);
   }
 }
