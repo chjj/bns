@@ -60,7 +60,8 @@
     "node": ">=7.6.0"
   },
   "browser": {
-    "./lib/crypto": "./lib/crypto-browser.js"
+    "./lib/crypto": "./lib/crypto-browser.js",
+    "./lib/lazy": "./lib/lazy-browser.js"
   },
   "browserify": {
     "transform": [
