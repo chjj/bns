@@ -152,8 +152,8 @@ if (!type)
   type = 'A';
 
 async function lookup(name) {
-  const options = { all: true, hints: dns.ADDRCONFIG };
   const dns = require('../lib/dns');
+  const options = { all: true, hints: dns.ADDRCONFIG };
   const addrs = await dns.lookup(host, options);
 
   if (recursive) {
