@@ -158,8 +158,8 @@ async function lookup(name) {
 
   if (recursive) {
     const inet4 = addrs.filter(addr => addr.family === 4);
-    const {inet4} = util.randomItem(addrs);
-    return inet4;
+    const {address} = util.randomItem(inet4);
+    return address;
   }
 
   const {address} = util.randomItem(addrs);

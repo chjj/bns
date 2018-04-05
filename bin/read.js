@@ -41,7 +41,7 @@ async function readInput(arg) {
     });
 
     stdin.on('end', () => {
-      resolve(['/dev/stdin', input, ...argv.slice(2)])
+      resolve(['/dev/stdin', input, ...argv.slice(2)]);
     });
   });
 }
