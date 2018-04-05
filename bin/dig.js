@@ -4,10 +4,10 @@
 
 const IP = require('binet');
 const pkg = require('../package.json');
-const dns = require('../lib/dns');
 const encoding = require('../lib/encoding');
 const Hosts = require('../lib/hosts');
 const ResolvConf = require('../lib/resolvconf');
+const Hints = require('../lib/hints');
 const util = require('../lib/util');
 
 let name = null;
@@ -16,6 +16,9 @@ let host = null;
 let port = 53;
 let conf = null;
 let hosts = null;
+let recursive = false;
+let hints = null;
+let anchors = null;
 let inet6 = null;
 let reverse = false;
 let json = false;
@@ -60,6 +63,22 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '--hosts':
       hosts = Hosts.fromFile(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '-r':
+    case '--recursive':
+      recursive = true;
+      break;
+    case '--hints':
+      hints = Hints.fromFile(process.argv[i + 1]);
+      i += 1;
+      break;
+    case '--anchor':
+      if (process.argv[i + 1]) {
+        if (!anchors)
+          anchors = [];
+        anchors.push(process.argv[i + 1]);
+      }
       i += 1;
       break;
     case '-h':
@@ -134,13 +153,21 @@ if (!type)
 
 async function lookup(name) {
   const options = { all: true, hints: dns.ADDRCONFIG };
+  const dns = require('../lib/dns');
   const addrs = await dns.lookup(host, options);
+
+  if (recursive) {
+    const inet4 = addrs.filter(addr => addr.family === 4);
+    const {inet4} = util.randomItem(addrs);
+    return inet4;
+  }
+
   const {address} = util.randomItem(addrs);
   return address;
 }
 
 async function resolve(name, type, options) {
-  const {host, port} = options;
+  const dns = recursive ? require('../lib/rdns') : require('../lib/dns');
   const resolver = new dns.Resolver(options);
 
   if (options.debug) {
@@ -153,9 +180,12 @@ async function resolve(name, type, options) {
     });
   }
 
-  if (host) {
-    const server = IP.toHost(host, port);
-    resolver.setServers([server]);
+  if (!recursive) {
+    const {host, port} = options;
+    if (host) {
+      const server = IP.toHost(host, port);
+      resolver.setServers([server]);
+    }
   }
 
   return resolver.resolveRaw(name, type);
@@ -171,8 +201,29 @@ function printHeader(host) {
 }
 
 (async () => {
-  if (host && !util.isIP(host))
-    host = await lookup(host);
+  if (recursive) {
+    let ns = 'hints.local.';
+
+    if (host && !util.isIP(host)) {
+      ns = host;
+      host = await lookup(host);
+    }
+
+    if (host && !hints) {
+      hints = new Hints();
+      hints.addServer(ns, host);
+      if (anchors) {
+        for (const ds of anchors)
+          hints.addAnchor(ds);
+      }
+    }
+
+    if (hints)
+      hints.port = port;
+  } else {
+    if (host && !util.isIP(host))
+      host = await lookup(host);
+  }
 
   if (reverse) {
     name = encoding.reverse(name);
@@ -182,6 +233,7 @@ function printHeader(host) {
   const now = Date.now();
 
   const res = await resolve(name, type, {
+    hints,
     host,
     port,
     conf,

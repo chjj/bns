@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const {readArg} = require('./read');
+const {Record} = require('../lib/wire');
+
+readArg(async (file, input) => {
+  const rr = Record.fromString(input);
+  const json = rr.toJSON();
+  const str = JSON.stringify(json, null, 2);
+
+  process.stdout.write(str + '\n');
+});

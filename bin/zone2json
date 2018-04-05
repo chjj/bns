@@ -2,11 +2,11 @@
 
 'use strict';
 
-const read = require('./read');
+const {read} = require('./read');
 const wire = require('../lib/wire');
 
-read(async (input) => {
-  const zone = wire.fromZone(input);
+read(async (file, input, origin) => {
+  const zone = wire.fromZone(input, origin, file);
   const json = [];
 
   for (const rr of zone)

@@ -9,17 +9,24 @@ const {
   stderr
 } = process;
 
-async function readInput() {
+async function readInput(arg) {
   return new Promise((resolve, reject) => {
-    if (argv.length > 2 && argv[2] !== '-') {
-      fs.readFile(argv[2], 'utf8', (err, text) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(text);
-      });
-      return;
+    if (argv.length > 2) {
+      if (arg) {
+        resolve(['/dev/stdin', argv[2], ...argv.slice(3)]);
+        return;
+      }
+
+      if (argv[2] !== '-') {
+        fs.readFile(argv[2], 'utf8', (err, text) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve([argv[2], text, ...argv.slice(3)]);
+        });
+        return;
+      }
     }
 
     let input = '';
@@ -33,13 +40,16 @@ async function readInput() {
       input += str;
     });
 
-    stdin.on('end', () => resolve(input));
+    stdin.on('end', () => {
+      resolve(['/dev/stdin', input, ...argv.slice(2)])
+    });
   });
 }
 
-async function _read(callback) {
+async function _read(callback, arg) {
   try {
-    await callback(await readInput());
+    const args = await readInput(arg);
+    await callback(...args);
   } catch (e) {
     stderr.write(e.stack + '\n');
     exit(1);
@@ -47,7 +57,12 @@ async function _read(callback) {
 }
 
 function read(callback) {
-  _read(callback);
+  _read(callback, false);
 }
 
-module.exports = read;
+function readArg(callback) {
+  _read(callback, true);
+}
+
+exports.read = read;
+exports.readArg = readArg;

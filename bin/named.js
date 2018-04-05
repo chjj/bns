@@ -3,6 +3,7 @@
 'use strict';
 
 const pkg = require('../package.json');
+const RecursiveServer = require('../lib/server/recursive');
 const StubServer = require('../lib/server/stub');
 const util = require('../lib/util');
 
@@ -10,6 +11,8 @@ let host = '127.0.0.1';
 let port = 53;
 let confFile = null;
 let hostsFile = null;
+let recursive = false;
+let hintsFile = null;
 let inet6 = null;
 let edns = null;
 let dnssec = null;
@@ -38,6 +41,14 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '--hosts':
       hostsFile = process.argv[i + 1];
+      i += 1;
+      break;
+    case '-r':
+    case '--recursive':
+      recursive = true;
+      break;
+    case '--hints':
+      hintsFile = process.argv[i + 1];
       i += 1;
       break;
     case '-h':
@@ -76,21 +87,30 @@ for (let i = 2; i < process.argv.length; i++) {
   }
 }
 
-const server = new StubServer({
+const Server = recursive ? RecursiveServer : StubServer;
+
+const server = new Server({
   inet6,
   edns,
   dnssec
 });
 
-if (confFile)
-  server.conf.fromFile(confFile);
-else
-  server.conf.fromSystem();
+if (recursive) {
+  if (hintsFile)
+    server.hints.fromFile(hintsFile);
+  else
+    server.hints.fromRoot();
+} else {
+  if (confFile)
+    server.conf.fromFile(confFile);
+  else
+    server.conf.fromSystem();
 
-if (hostsFile)
-  server.hosts.fromFile(hostsFile);
-else
-  server.hosts.fromSystem();
+  if (hostsFile)
+    server.hosts.fromFile(hostsFile);
+  else
+    server.hosts.fromSystem();
+}
 
 server.on('error', (err) => {
   console.error(err.stack);

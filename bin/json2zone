@@ -2,11 +2,11 @@
 
 'use strict';
 
-const read = require('./read');
+const {read} = require('./read');
 const wire = require('../lib/wire');
 const {Record} = wire;
 
-read(async (input) => {
+read(async (file, input) => {
   const items = JSON.parse(input);
 
   if (!Array.isArray(items))

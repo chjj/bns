@@ -2,12 +2,12 @@
 
 'use strict';
 
-const read = require('./read');
+const {read} = require('./read');
 const {Message} = require('../lib/wire');
 
 const now = Date.now();
 
-read(async (input) => {
+read(async (file, input) => {
   const json = JSON.parse(input);
   const msg = Message.fromJSON(json);
   const str = msg.toString(now);

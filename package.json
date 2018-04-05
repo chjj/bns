@@ -18,11 +18,11 @@
   "main": "./lib/bns.js",
   "bin": {
     "dig.js": "./bin/dig.js",
-    "rdig.js": "./bin/rdig.js",
     "named.js": "./bin/named.js",
-    "rnamed.js": "./bin/rnamed.js",
     "dig2json": "./bin/dig2json",
     "json2dig": "./bin/json2dig",
+    "rr2json": "./bin/rr2json",
+    "json2rr": "./bin/json2rr",
     "zone2json": "./bin/zone2json",
     "json2zone": "./bin/json2zone"
   },
