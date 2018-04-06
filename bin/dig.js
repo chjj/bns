@@ -258,8 +258,10 @@ function printHeader(host) {
       printHeader(host);
       process.stdout.write(';; Got answer:\n');
       // Note: should go after header flags.
-      if (rd && !res.ra)
-        process.stdout.write(';; WARNING: recursion requested but not available\n');
+      if (rd && !res.ra) {
+        process.stdout.write(';; WARNING:');
+        process.stdout.write(' recursion requested but not available\n');
+      }
       process.stdout.write(res.toString(now, host, port) + '\n');
     }
   }
