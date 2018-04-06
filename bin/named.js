@@ -57,10 +57,12 @@ for (let i = 2; i < process.argv.length; i++) {
     case '-o':
     case '--origin':
       origin = process.argv[i + 1];
+      i += 1;
       break;
     case '-z':
     case '--zone':
       zoneFile = process.argv[i + 1];
+      i += 1;
       break;
     case '-h':
     case '--help':
