@@ -37,11 +37,11 @@
   "dependencies": {
     "bfile": "~0.0.2",
     "bheep": "~0.0.1",
-    "binet": "~0.1.0",
+    "binet": "~0.2.0",
     "bs32": "~0.0.1",
     "btcp": "~0.0.2",
     "budp": "~0.0.2",
-    "bufio": "~0.0.3",
+    "bufio": "~0.1.0",
     "elliptic": "~6.4.0"
   },
   "devDependencies": {
