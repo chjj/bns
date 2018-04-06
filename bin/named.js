@@ -3,6 +3,7 @@
 'use strict';
 
 const pkg = require('../package.json');
+const AuthServer = require('../lib/server/auth');
 const RecursiveServer = require('../lib/server/recursive');
 const StubServer = require('../lib/server/stub');
 const util = require('../lib/util');
@@ -13,6 +14,8 @@ let confFile = null;
 let hostsFile = null;
 let recursive = false;
 let hintsFile = null;
+let origin = '.';
+let zoneFile = null;
 let inet6 = null;
 let edns = null;
 let dnssec = null;
@@ -51,6 +54,14 @@ for (let i = 2; i < process.argv.length; i++) {
       hintsFile = process.argv[i + 1];
       i += 1;
       break;
+    case '-o':
+    case '--origin':
+      origin = process.argv[i + 1];
+      break;
+    case '-z':
+    case '--zone':
+      zoneFile = process.argv[i + 1];
+      break;
     case '-h':
     case '--help':
     case '-?':
@@ -83,11 +94,23 @@ for (let i = 2; i < process.argv.length; i++) {
         break;
       }
 
+      if (zoneFile) {
+        origin = arg;
+        break;
+      }
+
       throw new Error(`Unexpected argument: ${arg}.`);
   }
 }
 
-const Server = recursive ? RecursiveServer : StubServer;
+let Server;
+
+if (zoneFile)
+  Server = AuthServer;
+else if (recursive)
+  Server = RecursiveServer;
+else
+  Server = StubServer;
 
 const server = new Server({
   inet6,
@@ -95,7 +118,10 @@ const server = new Server({
   dnssec
 });
 
-if (recursive) {
+if (zoneFile) {
+  server.setOrigin(origin);
+  server.setFile(zoneFile);
+} else if (recursive) {
   if (hintsFile)
     server.hints.fromFile(hintsFile);
   else
