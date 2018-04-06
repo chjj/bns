@@ -245,6 +245,9 @@ function printHeader(host) {
     debug
   });
 
+  if (recursive)
+    res.rd = rd;
+
   if (json) {
     const text = JSON.stringify(res.toJSON(), null, 2);
     process.stdout.write(text + '\n');
