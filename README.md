@@ -1,8 +1,190 @@
 # bns
 
-DNS library and validating recursive resolver for node.js, in pure javascript.
+DNS library, server, and validating recursive resolver for node.js, in pure
+javascript.
 
-## Example
+## Server Usage
+
+### Base Server
+
+``` js
+const bns = require('bns');
+const {wire, Server} = bns;
+
+const server = new Server();
+
+server.on('query', (req, res, rinfo) => {
+  const [question] = req.question;
+
+  // Log all requests (dig format).
+  console.log('Incoming request:');
+  console.log(req.toString());
+
+  // Respond with an A record (see lib/wire.js).
+  if (question.name === 'example.com.') {
+    const rr = new wire.Record();
+
+    rr.name = 'example.com.';
+    rr.type = wire.types.A;
+    rr.ttl = 3600;
+    rr.data = new wire.ARecord();
+    rr.data.address = '127.0.0.1';
+
+    res.answer.push(rr);
+    res.send();
+
+    return;
+  }
+
+  // Not found!
+  res.code = wire.codes.NXDOMAIN;
+  res.send();
+});
+
+server.bind(5300, '127.0.0.1');
+```
+
+### Authoritative Server
+
+``` js
+const bns = require('bns');
+const {AuthServer} = bns;
+
+const server = new AuthServer({ edns: true });
+
+// Tell bns which zone we're serving.
+server.setOrigin('myzone.');
+
+// Parse our zone file.
+server.setFile('/path/to/my/zonefile.zone');
+
+server.on('query', (req, res, rinfo) => {
+  // Log all requests (dig format).
+  console.log('Incoming request:');
+  console.log(req.toString());
+});
+
+server.bind(5300, '127.0.0.1');
+```
+
+### Recursive Server
+
+``` js
+const bns = require('bns');
+const {RecursiveServer} = bns;
+
+const server = new RecursiveServer({
+  edns: true,
+  dnssec: true,
+  inet6: true
+});
+
+// Root Hints (see lib/hints.js):
+server.hints.setDefault();
+
+// Custom hints:
+// server.hints.fromFile('/path/to/our/custom.hints');
+
+server.on('query', (req, res, rinfo) => {
+  // Log all requests (dig format).
+  console.log('Incoming request:');
+  console.log(req.toString());
+});
+
+server.bind(5300, '127.0.0.1');
+```
+
+Now you can have a local recursive resolver instead of relying on google's
+or your ISP's public DNS!
+
+## Resolver Usage
+
+### Stub Resolver
+
+``` js
+const bns = require('bns');
+const {StubResolver} = bns;
+
+const resolver = new StubResolver({
+  edns: true,
+  dnssec: true,
+  inet6: true
+});
+
+// Like /etc/hosts (see lib/hosts.js).
+resolver.setHosts([
+  ['localhost.', '127.0.0.1'],
+  ['localhost.', '::1']
+]);
+
+// Like /etc/resolv.conf (see lib/resolvconf.js).
+resolver.setServers(['8.8.8.8', '8.8.4.4']);
+
+resolver.on('log', (...args) => console.log(...args));
+
+await resolver.open();
+
+const res = await resolver.lookup('google.com.', 'ANY');
+console.log(res.toString());
+```
+
+### Recursive Resolver
+
+``` js
+const bns = require('bns');
+const {RecursiveResolver} = bns;
+
+const resolver = new RecursiveResolver({
+  edns: true,
+  dnssec: true,
+  inet6: true
+});
+
+// Use default root hints and trust
+// anchors (see lib/hints.js).
+resolver.hints.setDefault();
+
+resolver.on('log', (...args) => console.log(...args));
+
+await resolver.open();
+
+const res = await resolver.lookup('google.com.', 'ANY');
+console.log(res.toString());
+```
+
+## Node.js API Usage
+
+BNS has a module which mimics the node.js API.
+
+``` js
+const {dns} = require('bns');
+
+console.log(await dns.resolve6('google.com'));
+```
+
+The recursive resolver can also mimic the node.js API!
+
+``` js
+const {rdns} = require('bns');
+
+console.log(await rdns.resolve6('google.com'));
+```
+
+## CLI Usage
+
+### named.js
+
+A quick way to setup a server.
+
+Running an authoritative server is as simple as:
+
+``` bash
+$ named.js @:: -p 5300 -z ~/myzonefile.zone myzone. +edns
+```
+
+### dig.js
+
+BNS comes with a reimplementation of `dig`.
 
 ``` bash
 $ dig.js --recursive www.ietf.org +dnssec +debug
@@ -120,12 +302,6 @@ www.ietf.org.cdn.cloudflare.net. 300 IN RRSIG A 13 6 300 20180406144148 20180404
 ;; Query time: 1168 msec
 ;; WHEN: Thu Apr 05 06:41:30 PDT 2018
 ;; MSG SIZE  rcvd: 202
-```
-
-## Usage
-
-``` js
-const bns = require('bns');
 ```
 
 ## Contribution and License Agreement
