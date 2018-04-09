@@ -4,11 +4,13 @@
 
 const IP = require('binet');
 const pkg = require('../package.json');
+const constants = require('../lib/constants');
 const encoding = require('../lib/encoding');
 const Hosts = require('../lib/hosts');
 const ResolvConf = require('../lib/resolvconf');
 const Hints = require('../lib/hints');
 const util = require('../lib/util');
+const {isTypeString} = constants;
 
 let name = null;
 let type = null;
@@ -131,13 +133,13 @@ for (let i = 2; i < process.argv.length; i++) {
         break;
       }
 
-      if (!name) {
-        name = arg;
+      if (!type && isTypeString(arg)) {
+        type = arg;
         break;
       }
 
-      if (!type) {
-        type = arg;
+      if (!name) {
+        name = arg;
         break;
       }
 
@@ -255,13 +257,22 @@ function printHeader(host) {
     if (short) {
       process.stdout.write(res.toShort(name, type));
     } else {
+      if (res.malformed) {
+        process.stdout.write(';; Warning:');
+        process.stdout.write(' Message parser reports');
+        process.stdout.write(' malformed message packet.\n\n');
+      }
+
       printHeader(host);
+
       process.stdout.write(';; Got answer:\n');
+
       // Note: should go after header flags.
       if (rd && !res.ra) {
         process.stdout.write(';; WARNING:');
         process.stdout.write(' recursion requested but not available\n');
       }
+
       process.stdout.write(res.toString(now, host, port) + '\n');
     }
   }
