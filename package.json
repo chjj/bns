@@ -24,7 +24,8 @@
     "rr2json": "./bin/rr2json",
     "json2rr": "./bin/json2rr",
     "zone2json": "./bin/zone2json",
-    "json2zone": "./bin/json2zone"
+    "json2zone": "./bin/json2zone",
+    "whois.js": "./bin/whois.js"
   },
   "scripts": {
     "browserify": "browserify -s bns lib/bns.js | uglifyjs -c > bns.js",
