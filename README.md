@@ -12,8 +12,13 @@ const bns = require('bns');
 const {wire, Server} = bns;
 
 const server = new Server({
+  // Allow queries over TCP.
+  tcp: true,
+  // Maximum concurrent TCP connections.
+  maxConnections: 20,
   // Add EDNS0 OPT record in responses.
   edns: true,
+  // Set the UDP buffer size to 4096.
   ednsSize: 4096,
   // Add EDNS0 DO bit in responses.
   dnssec: true
@@ -57,6 +62,7 @@ const bns = require('bns');
 const {AuthServer} = bns;
 
 const server = new AuthServer({
+  tcp: true,
   edns: true,
   dnssec: true
 });
@@ -83,9 +89,10 @@ const bns = require('bns');
 const {RecursiveServer} = bns;
 
 const server = new RecursiveServer({
+  tcp: true,
+  inet6: true,
   edns: true,
-  dnssec: true,
-  inet6: true
+  dnssec: true
 });
 
 // Root Hints (see lib/hints.js):
@@ -115,9 +122,10 @@ const bns = require('bns');
 const {StubResolver} = bns;
 
 const resolver = new StubResolver({
+  tcp: true,
+  inet6: true,
   edns: true,
-  dnssec: true,
-  inet6: true
+  dnssec: true
 });
 
 // Like /etc/hosts (see lib/hosts.js).
@@ -144,9 +152,10 @@ const bns = require('bns');
 const {RecursiveResolver} = bns;
 
 const resolver = new RecursiveResolver({
+  tcp: true,
+  inet6: true,
   edns: true,
-  dnssec: true,
-  inet6: true
+  dnssec: true
 });
 
 // Use default root hints and trust
