@@ -247,8 +247,11 @@ function printHeader(host) {
     debug
   });
 
-  if (recursive)
+  if (recursive) {
     res.rd = rd;
+    if (edns && !res.isEDNS())
+      res.setEDNS(4096, dnssec);
+  }
 
   if (json) {
     const text = JSON.stringify(res.toJSON(), null, 2);

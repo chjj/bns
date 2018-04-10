@@ -11,7 +11,13 @@ javascript.
 const bns = require('bns');
 const {wire, Server} = bns;
 
-const server = new Server();
+const server = new Server({
+  // Add EDNS0 OPT record in responses.
+  edns: true,
+  ednsSize: 4096,
+  // Add EDNS0 DO bit in responses.
+  dnssec: true
+});
 
 server.on('query', (req, res, rinfo) => {
   const [question] = req.question;
@@ -50,7 +56,10 @@ server.bind(5300, '127.0.0.1');
 const bns = require('bns');
 const {AuthServer} = bns;
 
-const server = new AuthServer({ edns: true });
+const server = new AuthServer({
+  edns: true,
+  dnssec: true
+});
 
 // Tell bns which zone we're serving.
 server.setOrigin('myzone.');
