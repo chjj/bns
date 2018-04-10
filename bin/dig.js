@@ -25,6 +25,7 @@ let inet6 = null;
 let reverse = false;
 let json = false;
 let rd = true;
+let tcp = true;
 let edns = true;
 let dnssec = false;
 let short = false;
@@ -89,6 +90,14 @@ for (let i = 2; i < process.argv.length; i++) {
     case '-v':
       console.log(`dig.js ${pkg.version}`);
       process.exit(0);
+      break;
+    case '+vc':
+    case '+tcp':
+      tcp = true;
+      break;
+    case '+novc':
+    case '+notcp':
+      tcp = false;
       break;
     case '+edns':
       edns = true;
@@ -242,6 +251,7 @@ function printHeader(host) {
     hosts,
     inet6,
     rd,
+    tcp,
     edns,
     dnssec,
     debug

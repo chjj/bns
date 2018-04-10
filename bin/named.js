@@ -17,6 +17,7 @@ let hintsFile = null;
 let origin = '.';
 let zoneFile = null;
 let inet6 = null;
+let tcp = null;
 let edns = null;
 let dnssec = null;
 let debug = false;
@@ -71,6 +72,14 @@ for (let i = 2; i < process.argv.length; i++) {
       console.log(`named.js ${pkg.version}`);
       process.exit(0);
       break;
+    case '+vc':
+    case '+tcp':
+      tcp = true;
+      break;
+    case '+novc':
+    case '+notcp':
+      tcp = false;
+      break;
     case '+edns':
       edns = true;
       break;
@@ -116,6 +125,7 @@ else
 
 const server = new Server({
   inet6,
+  tcp,
   edns,
   dnssec
 });
