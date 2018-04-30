@@ -27,36 +27,61 @@ function getServer(name) {
   return server;
 }
 
+let name = null;
+let server = null;
+
+for (let i = 2; i < process.argv.length; i++) {
+  const arg = process.argv[i];
+
+  if (arg.length === 0)
+    throw new Error(`Unexpected argument: ${arg}.`);
+
+  switch (arg) {
+    default:
+      if (arg[0] === '@') {
+        server = arg.substring(1);
+        break;
+      }
+
+      if (!name) {
+        name = util.fqdn(arg.toLowerCase());
+        break;
+      }
+
+      throw new Error(`Unexpected argument: ${arg}.`);
+  }
+}
+
+if (!name) {
+  console.error('No name provided.');
+  process.exit(1);
+  return;
+}
+
+if (!encoding.isName(name)) {
+  console.error(`Invalid domain name: ${name}.`);
+  process.exit(1);
+  return;
+}
+
+if (!server)
+  server = getServer(name);
+
+if (!server) {
+  console.error(`WHOIS server not found for: ${name}.`);
+  process.exit(1);
+  return;
+}
+
 (async () => {
-  if (process.argv.length < 3) {
-    console.error('No name provided.');
-    process.exit(1);
-    return;
-  }
-
-  const arg = process.argv[2].toLowerCase();
-  const name = util.fqdn(arg);
-
-  if (!encoding.isName(name)) {
-    console.error(`Invalid domain name: ${name}.`);
-    process.exit(1);
-    return;
-  }
-
-  const server = getServer(name);
-
-  if (!server) {
-    console.error(`WHOIS server not found for: ${name}.`);
-    process.exit(1);
-    return;
-  }
-
   console.error(`WHOIS ${name} (${server})`);
 
-  const inet4 = await dns.resolve4(server);
-  const host = util.randomItem(inet4);
+  if (!util.isIP(server)) {
+    const inet4 = await dns.resolve4(server);
+    server = util.randomItem(inet4);
+  }
 
-  console.error(`Connecting to ${host}.`);
+  console.error(`Connecting to ${server}.`);
   console.error('');
 
   const socket = new tcp.Socket();
@@ -72,7 +97,7 @@ function getServer(name) {
 
   socket.setEncoding('utf8');
   socket.pipe(process.stdout);
-  socket.connect(43, host);
+  socket.connect(43, server);
 })().catch((err) => {
   console.error(err.stack);
   process.exit(1);
