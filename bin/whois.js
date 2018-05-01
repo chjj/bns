@@ -2,6 +2,8 @@
 
 'use strict';
 
+process.title = 'whois.js';
+
 const tcp = require('btcp');
 const dns = require('../lib/dns');
 const encoding = require('../lib/encoding');

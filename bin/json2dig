@@ -2,6 +2,8 @@
 
 'use strict';
 
+process.title = 'json2dig';
+
 const {read} = require('./read');
 const {Message} = require('../lib/wire');
 

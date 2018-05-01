@@ -2,6 +2,8 @@
 
 'use strict';
 
+process.title = 'named.js';
+
 const pkg = require('../package.json');
 const AuthServer = require('../lib/server/auth');
 const RecursiveServer = require('../lib/server/recursive');

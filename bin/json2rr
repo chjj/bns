@@ -2,6 +2,8 @@
 
 'use strict';
 
+process.title = 'json2rr';
+
 const {readArg} = require('./read');
 const {Record} = require('../lib/wire');
 

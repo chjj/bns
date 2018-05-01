@@ -2,6 +2,8 @@
 
 'use strict';
 
+process.title = 'zone2json';
+
 const {read} = require('./read');
 const wire = require('../lib/wire');
 

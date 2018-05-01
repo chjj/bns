@@ -2,6 +2,8 @@
 
 'use strict';
 
+process.title = 'dig.js';
+
 const IP = require('binet');
 const pkg = require('../package.json');
 const constants = require('../lib/constants');
