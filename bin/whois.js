@@ -36,7 +36,7 @@ for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
 
   if (arg.length === 0)
-    throw new Error(`Unexpected argument: ${arg}.`);
+    throw new Error('Unexpected argument.');
 
   switch (arg) {
     default:
@@ -79,8 +79,12 @@ if (!server) {
   console.error(`WHOIS ${name} (${server})`);
 
   if (!util.isIP(server)) {
-    const inet4 = await dns.resolve4(server);
-    server = util.randomItem(inet4);
+    const options = { all: true, hints: dns.ADDRCONFIG };
+    const addrs = await dns.lookup(server, options);
+    const inet4 = addrs.filter(addr => addr.family === 4);
+    const {address} = util.randomItem(inet4);
+
+    server = address;
   }
 
   console.error(`Connecting to ${server}.`);

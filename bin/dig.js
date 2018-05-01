@@ -37,7 +37,7 @@ for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
 
   if (arg.length === 0)
-    throw new Error(`Unexpected argument: ${arg}.`);
+    throw new Error('Unexpected argument.');
 
   switch (arg) {
     case '-4':
