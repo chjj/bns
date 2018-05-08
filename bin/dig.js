@@ -32,6 +32,7 @@ let edns = true;
 let dnssec = false;
 let short = false;
 let debug = false;
+let emailBits = 256;
 
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
@@ -61,6 +62,10 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '-t':
       type = arg;
+      break;
+    case '-b':
+      emailBits = util.parseU16(process.argv[i + 1]);
+      i += 1;
       break;
     case '--conf':
       conf = ResolvConf.fromFile(process.argv[i + 1]);
@@ -163,6 +168,24 @@ if (!name)
 
 if (!type)
   type = 'A';
+
+if (type === 'SMIMEA' && name.indexOf('@') !== -1) {
+  const smimea = require('../lib/smimea');
+  try {
+    name = smimea.encodeEmail(name, emailBits);
+  } catch (e) {
+    ;
+  }
+}
+
+if (type === 'OPENPGPKEY' && name.indexOf('@') !== -1) {
+  const openpgpkey = require('../lib/openpgpkey');
+  try {
+    name = openpgpkey.encodeEmail(name, emailBits);
+  } catch (e) {
+    ;
+  }
+}
 
 async function lookup(name) {
   const dns = require('../lib/dns');
