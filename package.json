@@ -1,6 +1,6 @@
 {
   "name": "bns",
-  "version": "0.0.13",
+  "version": "0.1.0",
   "description": "DNS bike-shed",
   "keywords": [
     "bns",
@@ -33,35 +33,35 @@
     "lint": "eslint bin/ lib/ test/ || exit 0",
     "test": "mocha --reporter spec test/*-test.js",
     "test-file": "mocha --reporter spec",
-    "webpack": "webpack --config webpack.config.js"
+    "webpack": "webpack --mode production --config webpack.config.js"
   },
   "dependencies": {
-    "bfile": "~0.0.2",
-    "bheep": "~0.0.1",
-    "binet": "~0.2.0",
-    "bs32": "~0.0.1",
-    "btcp": "~0.0.2",
-    "budp": "~0.0.2",
-    "bufio": "~0.1.0",
-    "elliptic": "~6.4.0"
+    "bcrypto": "~0.3.0",
+    "bfile": "~0.1.0",
+    "bheep": "~0.1.0",
+    "binet": "~0.3.0",
+    "bs32": "~0.1.0",
+    "btcp": "~0.1.0",
+    "budp": "~0.1.0",
+    "bufio": "~0.2.0"
   },
   "devDependencies": {
     "babelify": "^8.0.0",
-    "babel-core": "^6.26.0",
+    "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
-    "babel-preset-env": "^1.6.1",
-    "browserify": "^16.1.1",
-    "eslint": "^4.18.2",
-    "mocha": "^5.0.4",
-    "uglifyjs-webpack-plugin": "^1.2.3",
+    "babel-preset-env": "^1.7.0",
+    "browserify": "^16.2.2",
+    "eslint": "^4.19.1",
+    "mocha": "^5.2.0",
+    "uglifyjs-webpack-plugin": "^1.2.5",
     "uglify-es": "^3.3.9",
-    "webpack": "^4.1.1"
+    "webpack": "^4.11.1",
+    "webpack-cli": "^3.0.3"
   },
   "engines": {
-    "node": ">=7.6.0"
+    "node": ">=8.0.0"
   },
   "browser": {
-    "./lib/crypto": "./lib/crypto-browser.js",
     "./lib/lazy": "./lib/lazy-browser.js"
   },
   "browserify": {
