@@ -17,6 +17,7 @@ let confFile = null;
 let hostsFile = null;
 let recursive = false;
 let unbound = false;
+let minimize = false;
 let hintsFile = null;
 let origin = '.';
 let zoneFile = null;
@@ -59,6 +60,10 @@ for (let i = 2; i < process.argv.length; i++) {
     case '--unbound':
       unbound = true;
       recursive = true;
+      break;
+    case '-m':
+    case '--minimize':
+      minimize = true;
       break;
     case '--hints':
       hintsFile = process.argv[i + 1];
@@ -138,7 +143,8 @@ const server = new Server({
   inet6,
   tcp,
   edns,
-  dnssec
+  dnssec,
+  minimize
 });
 
 if (zoneFile) {
