@@ -36,7 +36,7 @@
     "webpack": "webpack --mode production --config webpack.config.js"
   },
   "dependencies": {
-    "bcrypto": "~0.3.1",
+    "bcrypto": "~0.3.2",
     "bfile": "~0.1.0",
     "bheep": "~0.1.0",
     "binet": "~0.3.0",
