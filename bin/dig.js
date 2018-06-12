@@ -21,6 +21,7 @@ let port = 53;
 let conf = null;
 let hosts = null;
 let recursive = false;
+let unbound = false;
 let hints = null;
 let anchors = null;
 let inet6 = null;
@@ -77,6 +78,11 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '-r':
     case '--recursive':
+      recursive = true;
+      break;
+    case '-u':
+    case '--unbound':
+      unbound = true;
       recursive = true;
       break;
     case '--hints':
@@ -203,7 +209,15 @@ async function lookup(name) {
 }
 
 async function resolve(name, type, options) {
-  const dns = recursive ? require('../lib/rdns') : require('../lib/dns');
+  let dns;
+
+  if (unbound)
+    dns = require('../lib/udns');
+  else if (recursive)
+    dns = require('../lib/rdns');
+  else
+    dns = require('../lib/dns');
+
   const resolver = new dns.Resolver(options);
 
   if (options.debug) {

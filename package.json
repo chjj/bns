@@ -45,6 +45,9 @@
     "budp": "~0.1.0",
     "bufio": "~0.2.0"
   },
+  "optionalDependencies": {
+    "unbound": "0.0.0"
+  },
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
@@ -64,7 +67,8 @@
     "node": ">=8.0.0"
   },
   "browser": {
-    "./lib/lazy": "./lib/lazy-browser.js"
+    "./lib/lazy": "./lib/lazy-browser.js",
+    "./lib/resolver/unbound": "./lib/resolver/unbound-browser.js"
   },
   "browserify": {
     "transform": [

@@ -7,6 +7,7 @@ process.title = 'named.js';
 const pkg = require('../package.json');
 const AuthServer = require('../lib/server/auth');
 const RecursiveServer = require('../lib/server/recursive');
+const UnboundServer = require('../lib/server/unbound');
 const StubServer = require('../lib/server/stub');
 const util = require('../lib/util');
 
@@ -15,6 +16,7 @@ let port = 53;
 let confFile = null;
 let hostsFile = null;
 let recursive = false;
+let unbound = false;
 let hintsFile = null;
 let origin = '.';
 let zoneFile = null;
@@ -51,6 +53,11 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     case '-r':
     case '--recursive':
+      recursive = true;
+      break;
+    case '-u':
+    case '--unbound':
+      unbound = true;
       recursive = true;
       break;
     case '--hints':
@@ -120,6 +127,8 @@ let Server;
 
 if (zoneFile)
   Server = AuthServer;
+else if (unbound)
+  Server = UnboundServer;
 else if (recursive)
   Server = RecursiveServer;
 else
