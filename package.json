@@ -36,7 +36,7 @@
     "webpack": "webpack --mode production --config webpack.config.js"
   },
   "dependencies": {
-    "bcrypto": "~0.3.0",
+    "bcrypto": "~0.3.1",
     "bfile": "~0.1.0",
     "bheep": "~0.1.0",
     "binet": "~0.3.0",
@@ -46,15 +46,17 @@
     "bufio": "~0.2.0"
   },
   "devDependencies": {
-    "babelify": "^8.0.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
+    "babelify": "^8.0.0",
     "browserify": "^16.2.2",
     "eslint": "^4.19.1",
     "mocha": "^5.2.0",
-    "uglifyjs-webpack-plugin": "^1.2.5",
     "uglify-es": "^3.3.9",
+    "uglifyjs-webpack-plugin": "^1.2.5",
     "webpack": "^4.11.1",
     "webpack-cli": "^3.0.3"
   },
