@@ -12,7 +12,7 @@ async function testOwnership(name, secure) {
   const ownership = new Ownership(Resolver, secure);
   const proof = await ownership.prove(name);
 
-  assert(ownership.verifySanity(proof), 'invalid-sanity');
+  assert(ownership.isSane(proof), 'invalid-sanity');
   assert(ownership.verifyTimes(proof, util.now()), 'invalid-times');
   assert(ownership.verifySignatures(proof), 'invalid-signatures');
 
