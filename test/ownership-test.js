@@ -20,6 +20,7 @@ async function testOwnership(name, secure, weak) {
   assert(ownership.verifyTimes(proof, util.now()), `${name}: invalid-times`);
   assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
   assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
+  assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
 
   return proof;
 }
