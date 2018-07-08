@@ -8,6 +8,7 @@ const rdns = require('../lib/rdns');
 const {types, codes} = require('../lib/wire');
 
 const dnssecNames = [
+  'cloudflare.com',
   'dnssec-name-and-shame.com',
   'getdnsapi.net',
   'nlnetlabs.nl',
@@ -17,8 +18,8 @@ const dnssecNames = [
   'www.kirei.se',
   'www.opendnssec.org',
   'www.ietf.org',
-  'www.iana.org',
-  'internetsociety.org'
+  'www.iana.org'
+  // 'internetsociety.org' // 33 bit exponent
 ];
 
 const nxNames = [

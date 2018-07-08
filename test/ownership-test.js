@@ -8,34 +8,48 @@ const Ownership = require('../lib/ownership');
 const util = require('../lib/util');
 const Resolver = require('../lib/resolver/stub');
 
-async function testOwnership(name, secure) {
-  const ownership = new Ownership(Resolver, secure);
+async function testOwnership(name, secure, weak) {
+  const ownership = new Ownership();
+
+  ownership.Resolver = Resolver;
+  ownership.secure = secure;
+
   const proof = await ownership.prove(name);
 
-  assert(ownership.isSane(proof), 'invalid-sanity');
-  assert(ownership.verifyTimes(proof, util.now()), 'invalid-times');
-  assert(ownership.verifySignatures(proof), 'invalid-signatures');
+  assert(ownership.isSane(proof), `${name}: invalid-sanity`);
+  assert(ownership.verifyTimes(proof, util.now()), `${name}: invalid-times`);
+  assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
+  assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
 
   return proof;
 }
 
+const provableNames = [
+  ['cloudflare.com.', true, true],
+  // ['dnssec-name-and-shame.com.', true, true], // No TXT records
+  // ['getdnsapi.net.', true, true], // No TXT records
+  ['nlnetlabs.nl.', true, true],
+  ['nlnet.nl.', true, true],
+  ['verisigninc.com.', true, true],
+  ['iis.se.', false, true],
+  ['kirei.se.', true, false],
+  ['opendnssec.org.', false, true],
+  ['ietf.org.', false, true],
+  ['iana.org.', false, true]
+  // ['internetsociety.org.', false, true] // 33 bit exponent
+];
+
 describe('Ownership', function() {
-  it('should verify proof for ietf.org', async () => {
-    const proof1 = await testOwnership('ietf.org.', false);
-    assert(proof1);
-  });
+  this.timeout(10000);
 
-  it('should verify proof for nlnetlabs.nl', async () => {
-    const proof1 = await testOwnership('nlnetlabs.nl.', false);
-    assert(proof1);
-    const proof2 = await testOwnership('nlnetlabs.nl.', true);
-    assert(proof2);
-  });
-
-  it('should verify proof for nlnet.nl', async () => {
-    const proof1 = await testOwnership('nlnet.nl.', false);
-    assert(proof1);
-    const proof2 = await testOwnership('nlnet.nl.', true);
-    assert(proof2);
-  });
+  for (const [name, secure, weak] of provableNames) {
+    it(`should verify proof for ${util.trimFQDN(name)}`, async () => {
+      const proof1 = await testOwnership(name, secure, weak);
+      assert(proof1);
+      if (secure) {
+        const proof2 = await testOwnership(name, false, weak);
+        assert(proof2);
+      }
+    });
+  }
 });
