@@ -46,7 +46,7 @@
     "bufio": "~0.2.0"
   },
   "optionalDependencies": {
-    "unbound": "~0.0.2"
+    "unbound": "~0.0.3"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

@@ -7,6 +7,15 @@ const assert = require('./util/assert');
 const Ownership = require('../lib/ownership');
 const util = require('../lib/util');
 const Resolver = require('../lib/resolver/stub');
+const {OwnershipProof} = Ownership;
+
+function verifyProof(name, ownership, proof, weak) {
+  assert(ownership.isSane(proof), `${name}: invalid-sanity`);
+  assert(ownership.verifyTimes(proof, util.now()), `${name}: invalid-times`);
+  assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
+  assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
+  assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
+}
 
 async function testOwnership(name, secure, weak) {
   const ownership = new Ownership();
@@ -16,11 +25,19 @@ async function testOwnership(name, secure, weak) {
 
   const proof = await ownership.prove(name);
 
-  assert(ownership.isSane(proof), `${name}: invalid-sanity`);
-  assert(ownership.verifyTimes(proof, util.now()), `${name}: invalid-times`);
-  assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
-  assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
-  assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
+  verifyProof(name, ownership, proof, weak);
+
+  const raw = proof.toHex();
+  const unraw = OwnershipProof.fromHex(raw);
+
+  assert.strictEqual(raw, unraw.toHex());
+
+  verifyProof(name, ownership, unraw, weak);
+
+  const txt = proof.toString();
+  const untxt = OwnershipProof.fromString(txt);
+
+  assert.strictEqual(raw, untxt.toHex());
 
   return proof;
 }
