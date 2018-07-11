@@ -17,6 +17,7 @@
   "author": "Christopher Jeffrey <chjjeffrey@gmail.com>",
   "main": "./lib/bns.js",
   "bin": {
+    "bns-keygen": "./bin/bns-keygen",
     "dig.js": "./bin/dig.js",
     "named.js": "./bin/named.js",
     "dig2json": "./bin/dig2json",

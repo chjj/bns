@@ -1,0 +1,134 @@
+#!/usr/bin/env node
+
+'use strict';
+
+process.title = 'bns-keygen';
+
+process.on('uncaughtException', (err) => {
+  console.error(err.message);
+  process.exit(1);
+});
+
+const Path = require('path');
+const fs = require('bfile');
+const pkg = require('../package.json');
+const constants = require('../lib/constants');
+const dnssec = require('../lib/dnssec');
+const util = require('../lib/util');
+const wire = require('../lib/wire');
+
+const {
+  algs,
+  algsByVal,
+  algToString,
+  stringToAlg,
+  keyFlags
+} = constants;
+
+// $ bns-keygen -a RSASHA256 -b 2048 -n ZONE -f KSK -K . rsa
+
+let alg = algs.RSASHA256;
+let bits = 2048;
+let flags = keyFlags.ZONE;
+let name = '.';
+let dir = null;
+let ttl = -1;
+
+for (let i = 2; i < process.argv.length; i++) {
+  const arg = process.argv[i];
+  const next = i !== process.argv.length - 1
+    ? process.argv[i + 1]
+    : '';
+
+  switch (arg) {
+    case '-a': {
+      alg = stringToAlg(next);
+      i += 1;
+      break;
+    }
+
+    case '-b': {
+      bits = util.parseU16(next);
+
+      if (bits < 768 || bits > 4096)
+        throw new Error('Invalid bits.');
+
+      i += 1;
+
+      break;
+    }
+
+    case '-n': {
+      if (next !== 'ZONE')
+        throw new Error('Invalid name type.');
+
+      i += 1;
+
+      break;
+    }
+
+    case '-f': {
+      if (!keyFlags.hasOwnProperty(next))
+        throw new Error('Unknown flag.');
+
+      flags |= keyFlags[next];
+      i += 1;
+
+      break;
+    }
+
+    case '-K': {
+      if (!next)
+        throw new Error('Invalid directory.');
+
+      dir = next;
+      i += 1;
+
+      break;
+    }
+
+    case '-L': {
+      ttl = util.parseU32(next);
+      i += 1;
+      break;
+    }
+
+    case '-h':
+    case '--help':
+    case '-?':
+    case '-v': {
+      console.log(`bns-keygen ${pkg.version}`);
+      process.exit(0);
+      break;
+    }
+
+    default: {
+      if (!util.isName(arg))
+        throw new Error('Invalid name.');
+      name = util.fqdn(arg.toLowerCase());
+      break;
+    }
+  }
+}
+
+const priv = dnssec.createPrivate(alg, bits);
+const txt = dnssec.encodePrivate(alg, priv);
+
+const pub = dnssec.createPublic(alg, priv);
+const rr = dnssec.createKey(name, alg, pub, flags);
+
+if (ttl !== -1)
+  rr.ttl = ttl;
+
+if (dir) {
+  const file = `K${name}+${alg}+${rr.data.keyTag()}`;
+  const privFile = `${file}.private`;
+  const pubFile = `${file}.key`;
+
+  fs.writeFileSync(Path.resolve(dir, privFile), txt + '\n');
+  fs.writeFileSync(Path.resolve(dir, pubFile), rr.toString() + '\n');
+} else {
+  process.stdout.write(txt + '\n');
+  process.stdout.write('\n');
+  process.stdout.write(rr.toString() + '\n');
+}

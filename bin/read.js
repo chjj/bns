@@ -13,7 +13,7 @@ async function readInput(arg) {
   return new Promise((resolve, reject) => {
     if (argv.length > 2) {
       if (arg) {
-        resolve(['/dev/stdin', argv[2], ...argv.slice(3)]);
+        resolve(['/dev/stdin', ...argv.slice(2)]);
         return;
       }
 
