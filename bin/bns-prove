@@ -1,0 +1,207 @@
+#!/usr/bin/env node
+
+'use strict';
+
+process.title = 'bns-prove';
+
+process.on('uncaughtException', (err) => {
+  console.error(err.message);
+  process.exit(1);
+});
+
+const assert = require('assert');
+const Path = require('path');
+const fs = require('bfile');
+const pkg = require('../package.json');
+const constants = require('../lib/constants');
+const dnssec = require('../lib/dnssec');
+const Resolver = require('../lib/resolver/stub');
+const Ownership = require('../lib/ownership');
+const util = require('../lib/util');
+const wire = require('../lib/wire');
+
+const {
+  keyFlags,
+  classes,
+  types
+} = constants;
+
+const {
+  Record,
+  TXTRecord
+} = wire;
+
+let hex = false;
+let secure = false;
+let hardened = false;
+let lifespan = 365 * 24 * 60 * 60;
+let dir = '.';
+let name = null;
+let txt = null;
+
+for (let i = 2; i < process.argv.length; i++) {
+  const arg = process.argv[i];
+  const next = i !== process.argv.length - 1
+    ? process.argv[i + 1]
+    : '';
+
+  switch (arg) {
+    case '-x': {
+      hex = true;
+      break;
+    }
+
+    case '-s': {
+      secure = true;
+      break;
+    }
+
+    case '-r': {
+      hardened = true;
+      break;
+    }
+
+    case '-t': {
+      lifespan = util.parseU32(lifespan);
+      i += 1;
+      break;
+    }
+
+    case '-K': {
+      if (!next)
+        throw new Error('Invalid directory.');
+
+      dir = next;
+      i += 1;
+
+      break;
+    }
+
+    case '-h':
+    case '--help':
+    case '-?':
+    case '-v': {
+      console.log(`bns-prove ${pkg.version}`);
+      process.exit(0);
+      break;
+    }
+
+    default: {
+      if (!name) {
+        if (!util.isName(arg))
+          throw new Error('Invalid name.');
+        name = util.fqdn(arg.toLowerCase());
+      } else if (!txt) {
+        txt = arg;
+      }
+      break;
+    }
+  }
+}
+
+if (!name || name === '.')
+  throw new Error('No name provided.');
+
+if (!txt)
+  throw new Error('No text provided.');
+
+function readFile(dir, file, enc) {
+  assert(typeof dir === 'string');
+
+  const path = Path.resolve(dir, file);
+
+  try {
+    return fs.readFileSync(path, enc);
+  } catch (e) {
+    if (e.code === 'ENOENT')
+      return null;
+    throw e;
+  }
+}
+
+function readPrivate(dir, key) {
+  assert(key && key.type === types.DNSKEY);
+
+  const kd = key.data;
+  const file = dnssec.privFile(key.name, kd.algorithm, kd.keyTag());
+  const str = readFile(dir, file, 'utf8');
+
+  if (!str)
+    return null;
+
+  const [alg, priv] = dnssec.decodePrivate(str);
+
+  if (alg !== kd.algorithm)
+    throw new Error('Algorithm mismatch for private key.');
+
+  return priv;
+}
+
+(async () => {
+  const ctx = new Ownership();
+
+  ctx.Resolver = Resolver;
+  ctx.secure = secure;
+
+  const proof = await ctx.prove(name, true);
+
+  if (hardened && ctx.isWeak(proof))
+    throw new Error('Cannot use RSA-1024 with hardening enabled.');
+
+  const zone = proof.zones[proof.zones.length - 1];
+
+  zone.claim.length = 0;
+
+  for (const key of zone.keys) {
+    if (key.type !== types.DNSKEY)
+      continue;
+
+    const kd = key.data;
+
+    if (!(kd.flags & keyFlags.ZONE))
+      continue;
+
+    if (kd.flags & keyFlags.SEP)
+      continue;
+
+    if (kd.flags & keyFlags.REVOKE)
+      continue;
+
+    if (!ctx.verifyKey(key, hardened))
+      continue;
+
+    const priv = readPrivate(dir, key);
+
+    if (!priv)
+      continue;
+
+    const rr = new Record();
+    const rd = new TXTRecord();
+
+    rr.name = name;
+    rr.type = types.TXT;
+    rr.class = classes.IN;
+    rr.ttl = 3600;
+    rr.data = rd;
+
+    rd.txt.push(txt);
+
+    const sig = dnssec.sign(key, priv, [rr], lifespan);
+
+    zone.claim.push(rr);
+    zone.claim.push(sig);
+
+    break;
+  }
+
+  if (zone.claim.length === 0)
+    throw new Error('Could not find suitable key to sign with.');
+
+  if (hex)
+    process.stdout.write(proof.toHex() + '\n');
+  else
+    process.stdout.write(proof.toString() + '\n');
+}).catch((err) => {
+  console.error(err.message);
+  process.exit(1);
+});

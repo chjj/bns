@@ -15,17 +15,12 @@ const pkg = require('../package.json');
 const constants = require('../lib/constants');
 const dnssec = require('../lib/dnssec');
 const util = require('../lib/util');
-const wire = require('../lib/wire');
 
 const {
   algs,
-  algsByVal,
-  algToString,
   stringToAlg,
   keyFlags
 } = constants;
-
-// $ bns-keygen -a RSASHA256 -b 2048 -n ZONE -f KSK -K . rsa
 
 let alg = algs.RSASHA256;
 let bits = 2048;
@@ -116,14 +111,14 @@ const txt = dnssec.encodePrivate(alg, priv);
 
 const pub = dnssec.createPublic(alg, priv);
 const rr = dnssec.createKey(name, alg, pub, flags);
+const tag = rr.data.keyTag();
 
 if (ttl !== -1)
   rr.ttl = ttl;
 
 if (dir) {
-  const file = `K${name}+${alg}+${rr.data.keyTag()}`;
-  const privFile = `${file}.private`;
-  const pubFile = `${file}.key`;
+  const privFile = dnssec.privFile(name, alg, tag);
+  const pubFile = dnssec.pubFile(name, alg, tag);
 
   fs.writeFileSync(Path.resolve(dir, privFile), txt + '\n');
   fs.writeFileSync(Path.resolve(dir, pubFile), rr.toString() + '\n');
