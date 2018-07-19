@@ -29,40 +29,27 @@
     "whois.js": "./bin/whois.js"
   },
   "scripts": {
-    "browserify": "browserify -s bns lib/bns.js | uglifyjs -c > bns.js",
-    "clean": "rm -f bns.js",
     "lint": "eslint bin/* lib/ test/ || exit 0",
     "test": "mocha --reporter spec test/*-test.js",
-    "test-file": "mocha --reporter spec",
-    "webpack": "webpack --mode production --config webpack.config.js"
+    "test-file": "mocha --reporter spec"
   },
   "dependencies": {
-    "bcrypto": "~0.3.7",
-    "bfile": "~0.1.0",
-    "bheep": "~0.1.0",
-    "binet": "~0.3.0",
-    "bs32": "~0.1.0",
-    "btcp": "~0.1.0",
-    "budp": "~0.1.0",
-    "bufio": "~0.2.0"
+    "bcrypto": "~1.0.0",
+    "bfile": "~0.1.1",
+    "bheep": "~0.1.1",
+    "binet": "~0.3.1",
+    "bs32": "~0.1.1",
+    "bsert": "~0.0.3",
+    "btcp": "~0.1.1",
+    "budp": "~0.1.1",
+    "bufio": "~1.0.1"
   },
   "optionalDependencies": {
-    "unbound": "~0.0.4"
+    "unbound": "~0.0.5"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babelify": "^8.0.0",
-    "browserify": "^16.2.2",
-    "eslint": "^4.19.1",
-    "mocha": "^5.2.0",
-    "uglify-es": "^3.3.9",
-    "uglifyjs-webpack-plugin": "^1.2.5",
-    "webpack": "^4.11.1",
-    "webpack-cli": "^3.0.3"
+    "eslint": "^5.1.0",
+    "mocha": "^5.2.0"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -70,10 +57,5 @@
   "browser": {
     "./lib/lazy": "./lib/lazy-browser.js",
     "./lib/resolver/unbound": "./lib/resolver/unbound-browser.js"
-  },
-  "browserify": {
-    "transform": [
-      "babelify"
-    ]
   }
 }
