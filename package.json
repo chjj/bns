@@ -9,10 +9,10 @@
     "tcp"
   ],
   "license": "MIT",
-  "repository": "git://github.com/bcoin-org/bns.git",
-  "homepage": "https://github.com/bcoin-org/bns",
+  "repository": "git://github.com/chjj/bns.git",
+  "homepage": "https://github.com/chjj/bns",
   "bugs": {
-    "url": "https://github.com/bcoin-org/bns/issues"
+    "url": "https://github.com/chjj/bns/issues"
   },
   "author": "Christopher Jeffrey <chjjeffrey@gmail.com>",
   "main": "./lib/bns.js",
