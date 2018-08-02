@@ -201,7 +201,7 @@ function readPrivate(dir, key) {
     process.stdout.write(proof.toHex() + '\n');
   else
     process.stdout.write(proof.toString() + '\n');
-}).catch((err) => {
+})().catch((err) => {
   console.error(err.message);
   process.exit(1);
 });

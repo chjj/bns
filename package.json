@@ -18,6 +18,7 @@
   "main": "./lib/bns.js",
   "bin": {
     "bns-keygen": "./bin/bns-keygen",
+    "bns-prove": "./bin/bns-prove",
     "dig.js": "./bin/dig.js",
     "named.js": "./bin/named.js",
     "dig2json": "./bin/dig2json",
@@ -39,7 +40,7 @@
     "bheep": "~0.1.1",
     "binet": "~0.3.1",
     "bs32": "~0.1.1",
-    "bsert": "~0.0.3",
+    "bsert": "~0.0.4",
     "btcp": "~0.1.1",
     "budp": "~0.1.1",
     "bufio": "~1.0.1"
