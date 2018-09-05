@@ -38,7 +38,14 @@ for (let i = 2; i < process.argv.length; i++) {
   switch (arg) {
     case '-a': {
       alg = stringToAlg(next);
+
+      if (alg === algs.DSA || alg === algs.DSANSEC3SHA1) {
+        if (bits > 1024)
+          bits = 1024;
+      }
+
       i += 1;
+
       break;
     }
 
