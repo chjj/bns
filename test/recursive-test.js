@@ -18,8 +18,9 @@ const dnssecNames = [
   'www.kirei.se',
   'www.opendnssec.org',
   'www.ietf.org',
-  'www.iana.org'
-  // 'internetsociety.org' // 33 bit exponent
+  'www.iana.org',
+  'internetsociety.org', // 33 bit exponent
+  'ed25519.nl'
 ];
 
 const nxNames = [
