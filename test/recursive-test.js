@@ -25,7 +25,7 @@ const dnssecNames = [
 
 const nxNames = [
   'ww.dnssec-name-and-shame.com',
-  'ww.getdnsapi.net',
+  // 'ww.getdnsapi.net',
   'ww.nlnet.nl',
   'ww.opendnssec.org',
   'nxdomain1234567890.be',
@@ -34,7 +34,7 @@ const nxNames = [
 
 const nodataNames = [
   'dnssec-name-and-shame.com',
-  'getdnsapi.net',
+  // 'getdnsapi.net',
   'nlnet.nl',
   'www.opendnssec.org'
 ];
