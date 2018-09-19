@@ -1,0 +1,66 @@
+{
+  "ANY": [
+    "google.com. 300 IN A 216.58.195.78",
+    "google.com. 300 IN AAAA 2607:f8b0:4005:807::200e",
+    "google.com. 3600 IN TXT \"v=spf1 include:_spf.google.com ~all\"",
+    "google.com. 600 IN MX 10 aspmx.l.google.com.",
+    "google.com. 600 IN MX 30 alt2.aspmx.l.google.com.",
+    "google.com. 86400 IN CAA 0 issue \"pki.goog\"",
+    "google.com. 60 IN SOA ns1.google.com. dns-admin.google.com. 213603989 900 900 1800 60",
+    "google.com. 3600 IN TXT \"facebook-domain-verification=22rm551cu4k0ab0bxsw536tlds4h95\"",
+    "google.com. 600 IN MX 50 alt4.aspmx.l.google.com.",
+    "google.com. 345600 IN NS ns2.google.com.",
+    "google.com. 345600 IN NS ns4.google.com.",
+    "google.com. 345600 IN NS ns3.google.com.",
+    "google.com. 600 IN MX 40 alt3.aspmx.l.google.com.",
+    "google.com. 300 IN TXT \"docusign=05958488-4752-4ef2-95eb-aa7ba8a3bd0e\"",
+    "google.com. 345600 IN NS ns1.google.com.",
+    "google.com. 600 IN MX 20 alt1.aspmx.l.google.com."
+  ],
+  "A": [
+    "icanhazip.com. 300 IN A 147.75.40.2"
+  ],
+  "AAAA": [
+    "icanhazip.com. 300 IN AAAA 2604:1380:1000:af00::1",
+    "icanhazip.com. 300 IN AAAA 2604:1380:3000:3b00::1",
+    "icanhazip.com. 300 IN AAAA 2604:1380:1:cd00::1"
+  ],
+  "CNAME": [
+    "mail.google.com. 604800 IN CNAME googlemail.l.google.com."
+  ],
+  "MX": [
+    "google.com. 600 IN MX 40 alt3.aspmx.l.google.com.",
+    "google.com. 600 IN MX 20 alt1.aspmx.l.google.com.",
+    "google.com. 600 IN MX 50 alt4.aspmx.l.google.com.",
+    "google.com. 600 IN MX 30 alt2.aspmx.l.google.com.",
+    "google.com. 600 IN MX 10 aspmx.l.google.com."
+  ],
+  "NAPTR": [
+    "apple.com. 86400 IN NAPTR 50 50 \"se\" \"SIPS+D2T\" \"\" _sips._tcp.apple.com.",
+    "apple.com. 86400 IN NAPTR 90 50 \"se\" \"SIP+D2T\" \"\" _sip._tcp.apple.com.",
+    "apple.com. 86400 IN NAPTR 100 50 \"se\" \"SIP+D2U\" \"\" _sip._udp.apple.com."
+  ],
+  "PTR": [
+    "46.0.217.172.in-addr.arpa. 86400 IN PTR lga15s43-in-f46.1e100.net.",
+    "46.0.217.172.in-addr.arpa. 86400 IN PTR sfo07s26-in-f14.1e100.net.",
+    "46.0.217.172.in-addr.arpa. 86400 IN PTR lga15s43-in-f14.1e100.net.",
+    "46.0.217.172.in-addr.arpa. 86400 IN PTR lga15s43-in-f46.1e100.net.",
+    "46.0.217.172.in-addr.arpa. 86400 IN PTR sfo07s26-in-f14.1e100.net.",
+    "46.0.217.172.in-addr.arpa. 86400 IN PTR lga15s43-in-f14.1e100.net."
+  ],
+  "SOA": [
+    "google.com. 60 IN SOA ns1.google.com. dns-admin.google.com. 213603989 900 900 1800 60"
+  ],
+  "SRV": [
+    "_xmpp-server._tcp.gmail.com. 900 IN SRV 20 0 5269 alt4.xmpp-server.l.google.com.",
+    "_xmpp-server._tcp.gmail.com. 900 IN SRV 20 0 5269 alt3.xmpp-server.l.google.com.",
+    "_xmpp-server._tcp.gmail.com. 900 IN SRV 5 0 5269 xmpp-server.l.google.com.",
+    "_xmpp-server._tcp.gmail.com. 900 IN SRV 20 0 5269 alt1.xmpp-server.l.google.com.",
+    "_xmpp-server._tcp.gmail.com. 900 IN SRV 20 0 5269 alt2.xmpp-server.l.google.com."
+  ],
+  "TXT": [
+    "google.com. 3600 IN TXT \"facebook-domain-verification=22rm551cu4k0ab0bxsw536tlds4h95\"",
+    "google.com. 300 IN TXT \"docusign=05958488-4752-4ef2-95eb-aa7ba8a3bd0e\"",
+    "google.com. 3600 IN TXT \"v=spf1 include:_spf.google.com ~all\""
+  ]
+}
