@@ -9,9 +9,6 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-const assert = require('assert');
-const Path = require('path');
-const fs = require('bfile');
 const pkg = require('../package.json');
 const constants = require('../lib/constants');
 const dnssec = require('../lib/dnssec');
@@ -32,6 +29,7 @@ const {
 } = wire;
 
 let hex = false;
+let base64 = false;
 let secure = false;
 let hardened = false;
 let lifespan = 365 * 24 * 60 * 60;
@@ -48,6 +46,11 @@ for (let i = 2; i < process.argv.length; i++) {
   switch (arg) {
     case '-x': {
       hex = true;
+      break;
+    }
+
+    case '-b': {
+      base64 = true;
       break;
     }
 
@@ -105,38 +108,6 @@ if (!name || name === '.')
 if (!txt)
   throw new Error('No text provided.');
 
-function readFile(dir, file, enc) {
-  assert(typeof dir === 'string');
-
-  const path = Path.resolve(dir, file);
-
-  try {
-    return fs.readFileSync(path, enc);
-  } catch (e) {
-    if (e.code === 'ENOENT')
-      return null;
-    throw e;
-  }
-}
-
-function readPrivate(dir, key) {
-  assert(key && key.type === types.DNSKEY);
-
-  const kd = key.data;
-  const file = dnssec.privFile(key.name, kd.algorithm, kd.keyTag());
-  const str = readFile(dir, file, 'utf8');
-
-  if (!str)
-    return null;
-
-  const [alg, priv] = dnssec.decodePrivate(str);
-
-  if (alg !== kd.algorithm)
-    throw new Error('Algorithm mismatch for private key.');
-
-  return priv;
-}
-
 (async () => {
   const ctx = new Ownership();
 
@@ -170,7 +141,7 @@ function readPrivate(dir, key) {
     if (!ctx.verifyKey(key, hardened))
       continue;
 
-    const priv = readPrivate(dir, key);
+    const priv = await dnssec.readPrivateAsync(dir, key);
 
     if (!priv)
       continue;
@@ -199,6 +170,8 @@ function readPrivate(dir, key) {
 
   if (hex)
     process.stdout.write(proof.toHex() + '\n');
+  else if (base64)
+    process.stdout.write(proof.toBase64() + '\n');
   else
     process.stdout.write(proof.toString() + '\n');
 })().catch((err) => {
