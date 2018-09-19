@@ -9,8 +9,6 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-const Path = require('path');
-const fs = require('bfile');
 const pkg = require('../package.json');
 const constants = require('../lib/constants');
 const dnssec = require('../lib/dnssec');
@@ -113,24 +111,25 @@ for (let i = 2; i < process.argv.length; i++) {
   }
 }
 
-const priv = dnssec.createPrivate(alg, bits);
-const txt = dnssec.encodePrivate(alg, priv);
+(async () => {
+  const priv = await dnssec.createPrivateAsync(alg, bits);
+  const pub = dnssec.createPublic(alg, priv);
+  const key = dnssec.createKey(name, alg, pub, flags);
 
-const pub = dnssec.createPublic(alg, priv);
-const rr = dnssec.createKey(name, alg, pub, flags);
-const tag = rr.data.keyTag();
+  if (ttl !== -1)
+    key.ttl = ttl;
 
-if (ttl !== -1)
-  rr.ttl = ttl;
+  if (dir) {
+    await dnssec.writeKeysAsync(dir, pub, priv);
+    return;
+  }
 
-if (dir) {
-  const privFile = dnssec.privFile(name, alg, tag);
-  const pubFile = dnssec.pubFile(name, alg, tag);
+  const txt = dnssec.encodePrivate(alg, priv);
 
-  fs.writeFileSync(Path.resolve(dir, privFile), txt + '\n');
-  fs.writeFileSync(Path.resolve(dir, pubFile), rr.toString() + '\n');
-} else {
   process.stdout.write(txt + '\n');
   process.stdout.write('\n');
-  process.stdout.write(rr.toString() + '\n');
-}
+  process.stdout.write(key.toString() + '\n');
+})().catch((err) => {
+  process.stderr.write(err.stack + '\n');
+  process.exit(1);
+});

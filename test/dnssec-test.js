@@ -11,14 +11,17 @@ const wire = require('../lib/wire');
 const vectors1 = require('./data/dnssec-verify-1.json');
 const vectors2 = require('./data/dnssec-verify-2.json');
 const vectors3 = require('./data/dnssec-verify-3.json');
+const vectors4 = require('./data/dnssec-verify-4.json');
+const vectors5 = require('./data/dnssec-verify-5.json');
 const {algs, keyFlags} = dnssec;
 const {Record} = wire;
 
 const DSA_TEST = Path.resolve(__dirname, 'data', 'dsa-test.zone');
+const ED25519_TEST = Path.resolve(__dirname, 'data', 'ed25519-test.zone');
 const KEY_DIR = Path.resolve(__dirname, 'data');
 
 describe('DNSSEC', function() {
-  for (const vectors of [vectors1, vectors2, vectors3]) {
+  for (const vectors of [vectors1, vectors2, vectors3, vectors4, vectors5]) {
     for (const vector of vectors) {
       const sig = Record.fromHex(vector.sig);
       const key = Record.fromHex(vector.key);
@@ -32,6 +35,21 @@ describe('DNSSEC', function() {
   }
 
   {
+    const str = fs.readFileSync(ED25519_TEST, 'utf8');
+    const parts = str.split('\n\n');
+    const keyText = parts[1].trim();
+    const rrText = parts[2].trim();
+    const sigText = parts[3].trim();
+    const key = Record.fromString(keyText);
+    const rr = Record.fromString(rrText);
+    const sig = Record.fromString(sigText);
+
+    it(`should verify signature for: ${sig.name}`, () => {
+      assert.strictEqual(dnssec.verify(sig, key, [rr]), true);
+    });
+  }
+
+  {
     const str = fs.readFileSync(DSA_TEST, 'utf8');
     const parts = str.split('\n\n');
     const dsaPriv = parts[1].replace(/^; /gm, '').trim();
@@ -39,7 +57,7 @@ describe('DNSSEC', function() {
     const rrset1 = parts[3].trim();
     const rrset2 = parts[4].trim();
 
-    it('should parse private key', async () => {
+    it('should parse DSA private key', async () => {
       const [alg, priv] = dnssec.decodePrivate(dsaPriv);
 
       assert.strictEqual(alg, algs.DSA);
@@ -61,7 +79,7 @@ describe('DNSSEC', function() {
       assert.bufferEqual(key.encode(), key3.encode());
     });
 
-    it('should create private key and read public key', async () => {
+    it('should create DSA private key and read public key', async () => {
       const [alg, priv] = dnssec.decodePrivate(dsaPriv);
 
       assert.strictEqual(alg, algs.DSA);
@@ -80,7 +98,7 @@ describe('DNSSEC', function() {
       assert.bufferEqual(key.encode(), key3.encode());
     });
 
-    it('should read private key', async () => {
+    it('should read DSA private key', async () => {
       const [alg, priv] = dnssec.decodePrivate(dsaPriv);
 
       assert.strictEqual(alg, algs.DSA);
@@ -114,13 +132,24 @@ describe('DNSSEC', function() {
   }
 
   for (const alg of [
+    algs.RSAMD5,
     algs.DSA,
+    algs.RSASHA1,
+    algs.DSANSEC3SHA1,
+    algs.RSASHA1NSEC3SHA1,
     algs.RSASHA256,
+    algs.RSASHA512,
     algs.ECDSAP256SHA256,
+    algs.ECDSAP384SHA384,
     algs.ED25519
   ]) {
+    let bits = 2048;
+
+    if (alg === algs.DSA || alg === algs.DSANSEC3SHA1)
+      bits = 1024;
+
     it(`should generate key and sign (${wire.algToString(alg)})`, async () => {
-      const priv = await dnssec.createPrivateAsync(alg, 1024);
+      const priv = await dnssec.createPrivateAsync(alg, bits);
       const key = dnssec.makeKey('example.com.', alg, priv, keyFlags.ZSK);
 
       assert.bufferEqual(
