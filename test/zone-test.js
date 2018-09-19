@@ -13,6 +13,7 @@ const {types, codes} = wire;
 const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
 const COM_RESPONSE = Path.resolve(__dirname, 'data', 'com-response.zone');
 const NX_RESPONSE = Path.resolve(__dirname, 'data', 'nx-response.zone');
+
 const comResponse = fs.readFileSync(COM_RESPONSE, 'utf8');
 const nxResponse = fs.readFileSync(NX_RESPONSE, 'utf8');
 
