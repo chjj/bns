@@ -22,16 +22,16 @@ const KEY_DIR = Path.resolve(__dirname, 'data');
 
 describe('DNSSEC', function() {
   for (const vectors of [vectors1, vectors2, vectors3, vectors4, vectors5]) {
-    for (const vector of vectors) {
-      const sig = Record.fromHex(vector.sig);
-      const key = Record.fromHex(vector.key);
-      const rrset = vector.rrset.map(hex => Record.fromHex(hex));
-      const result = vector.result;
+    it(`should parse and verify ${vectors.length} signatures`, () => {
+      for (const vector of vectors) {
+        const sig = Record.fromHex(vector.sig);
+        const key = Record.fromHex(vector.key);
+        const rrset = vector.rrset.map(hex => Record.fromHex(hex));
+        const result = vector.result;
 
-      it(`should verify signature for: ${sig.name}`, () => {
         assert.strictEqual(dnssec.verify(sig, key, rrset), result);
-      });
-    }
+      }
+    });
   }
 
   {
@@ -40,11 +40,12 @@ describe('DNSSEC', function() {
     const keyText = parts[1].trim();
     const rrText = parts[2].trim();
     const sigText = parts[3].trim();
-    const key = Record.fromString(keyText);
-    const rr = Record.fromString(rrText);
-    const sig = Record.fromString(sigText);
 
-    it(`should verify signature for: ${sig.name}`, () => {
+    it('should parse and verify ED25519 signature', () => {
+      const key = Record.fromString(keyText);
+      const rr = Record.fromString(rrText);
+      const sig = Record.fromString(sigText);
+
       assert.strictEqual(dnssec.verify(sig, key, [rr]), true);
     });
   }

@@ -16,70 +16,62 @@ const MSG_JSON = Path.resolve(__dirname, 'data', 'msg-json.json');
 
 describe('Wire', function() {
   describe('Root Zone File', function() {
-    const rootZone = wire.fromZone(fs.readFileSync(ROOT_ZONE, 'utf8'));
-    const rootJson = JSON.parse(fs.readFileSync(ROOT_JSON, 'utf8'));
-    const rootRaw = rootJson.map(hex => Buffer.from(hex, 'hex'));
-
-    assert.strictEqual(rootZone.length, 22540);
-    assert.strictEqual(rootJson.length, 22540);
-    assert.strictEqual(rootRaw.length, 22540);
+    let rootZone = null;
+    let rootJson = null;
+    let rootRaw = null;
 
     it('should parse root zone file', () => {
+      rootZone = wire.fromZone(fs.readFileSync(ROOT_ZONE, 'utf8'));
+      rootJson = JSON.parse(fs.readFileSync(ROOT_JSON, 'utf8'));
+      rootRaw = rootJson.map(hex => Buffer.from(hex, 'hex'));
+
+      assert.strictEqual(rootZone.length, 22540);
+      assert.strictEqual(rootJson.length, 22540);
+      assert.strictEqual(rootRaw.length, 22540);
+
       assert.strictEqual(rootZone.length, rootJson.length);
       assert.strictEqual(rootZone.length, rootRaw.length);
     });
 
-    for (let i = 0; i < rootZone.length; i++) {
-      const rr = rootZone[i];
-
-      it(`should compare zone to raw (${rr.name}/${rr.type}) (${i})`, () => {
+    it('should compare zone to raw', () => {
+      for (let i = 0; i < rootZone.length; i++)
         assert.bufferEqual(rootZone[i].encode(), rootRaw[i]);
-      });
-    }
+    });
 
-    for (let i = 0; i < rootZone.length; i++) {
-      const rr = rootZone[i];
-
-      it(`should compare raw to zone (${rr.name}/${rr.type}) (${i})`, () => {
+    it('should compare raw to zone', () => {
+      for (let i = 0; i < rootZone.length; i++)
         assert.deepStrictEqual(Record.decode(rootRaw[i]), rootZone[i]);
-      });
-    }
+    });
 
-    for (let i = 0; i < rootZone.length; i++) {
-      const rr = rootZone[i];
-
-      it(`should reserialize (${rr.name}/${rr.type}) (${i})`, () => {
+    it('should reserialize', () => {
+      for (let i = 0; i < rootZone.length; i++) {
+        const rr = rootZone[i];
         assert.deepStrictEqual(Record.decode(rr.encode()), rr);
-      });
-    }
+      }
+    });
 
-    for (let i = 0; i < rootZone.length; i++) {
-      const rr = rootZone[i];
+    it('should reencode', () => {
+      for (let i = 0; i < rootZone.length; i++) {
+        const rr = rootZone[i];
 
-      it(`should reencode (${rr.name}/${rr.type}) (${i})`, () => {
         assert.deepStrictEqual(Record.fromString(rr.toString()), rr);
-      });
-    }
+      }
+    });
 
-    for (let i = 0; i < rootZone.length; i++) {
-      const rr = rootZone[i];
-
-      it(`should rejson (${rr.name}/${rr.type}) (${i})`, () => {
+    it('should rejson', () => {
+      for (let i = 0; i < rootZone.length; i++) {
+        const rr = rootZone[i];
         assert.deepStrictEqual(Record.fromJSON(rr.toJSON()), rr);
-      });
-    }
+      }
+    });
   });
 
   describe('Messages', function() {
     const msgJson_ = JSON.parse(fs.readFileSync(MSG_JSON, 'utf8'));
     const msgRaw_ = JSON.parse(fs.readFileSync(MSG_RAW, 'utf8'));
-    const msgJson = msgJson_.map(json => Message.fromJSON(json));
-    const msgRaw = msgRaw_.map(hex => Buffer.from(hex, 'hex'));
 
-    assert.strictEqual(msgJson_.length, 279);
-    assert.strictEqual(msgRaw_.length, 279);
-    assert.strictEqual(msgJson.length, 279);
-    assert.strictEqual(msgRaw.length, 279);
+    let msgJson = null;
+    let msgRaw = null;
 
     const clean = (msg) => {
       assert(msg instanceof Message);
@@ -93,52 +85,47 @@ describe('Wire', function() {
     };
 
     it('should parse messages', () => {
+      msgJson = msgJson_.map(json => Message.fromJSON(json));
+      msgRaw = msgRaw_.map(hex => Buffer.from(hex, 'hex'));
+
+      assert.strictEqual(msgJson_.length, 279);
+      assert.strictEqual(msgRaw_.length, 279);
+      assert.strictEqual(msgJson.length, 279);
+      assert.strictEqual(msgRaw.length, 279);
       assert.strictEqual(msgJson.length, msgRaw.length);
     });
 
-    for (let i = 0; i < msgJson.length; i++) {
-      const msg = msgJson[i];
-      const qs = msg.question[0];
-
-      it(`should compare raw to json (${qs.name}/${qs.type}) (${i})`, () => {
+    it('should compare raw to json', () => {
+      for (let i = 0; i < msgJson.length; i++)
         deepStrictEqual(Message.decode(msgRaw[i]), msgJson[i]);
-      });
-    }
+    });
 
-    for (let i = 0; i < msgJson.length; i++) {
-      const msg = msgJson[i];
-      const qs = msg.question[0];
-
-      it(`should reserialize (${qs.name}/${qs.type}) (${i})`, () => {
+    it('should reserialize', () => {
+      for (let i = 0; i < msgJson.length; i++) {
+        const msg = msgJson[i];
         deepStrictEqual(Message.decode(msg.encode()), msg);
-      });
-    }
+      }
+    });
 
-    for (let i = 0; i < msgJson.length; i++) {
-      const msg = msgJson[i];
-      const qs = msg.question[0];
-
-      it(`should compress (${qs.name}/${qs.type}) (${i})`, () => {
+    it('should compress', () => {
+      for (let i = 0; i < msgJson.length; i++) {
+        const msg = msgJson[i];
         deepStrictEqual(Message.decode(msg.compress()), msg);
-      });
-    }
+      }
+    });
 
-    for (let i = 0; i < msgJson.length; i++) {
-      const msg = msgJson[i];
-      const qs = msg.question[0];
-
-      it(`should reencode (${qs.name}/${qs.type}) (${i})`, () => {
+    it('should reencode', () => {
+      for (let i = 0; i < msgJson.length; i++) {
+        const msg = msgJson[i];
         deepStrictEqual(Message.fromString(msg.toString()), msg);
-      });
-    }
+      }
+    });
 
-    for (let i = 0; i < msgJson.length; i++) {
-      const msg = msgJson[i];
-      const qs = msg.question[0];
-
-      it(`should rejson (${qs.name}/${qs.type}) (${i})`, () => {
+    it('should rejson', () => {
+      for (let i = 0; i < msgJson.length; i++) {
+        const msg = msgJson[i];
         deepStrictEqual(Message.fromJSON(msg.toJSON()), msg);
-      });
-    }
+      }
+    });
   });
 });

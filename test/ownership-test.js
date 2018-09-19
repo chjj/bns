@@ -5,13 +5,13 @@
 
 const assert = require('./util/assert');
 const Ownership = require('../lib/ownership');
-const util = require('../lib/util');
 const vectors = require('./data/ownership.json');
 const {OwnershipProof} = Ownership;
 
 function verifyProof(name, ownership, proof, weak) {
   assert(ownership.isSane(proof), `${name}: invalid-sanity`);
-  assert(ownership.verifyTimes(proof, util.now()), `${name}: invalid-times`);
+  // Maybe add 4 hours?
+  assert(ownership.verifyTimes(proof, 1537328775), `${name}: invalid-times`);
   assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
   assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
   assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
