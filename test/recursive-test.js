@@ -4,6 +4,8 @@
 'use strict';
 
 const assert = require('./util/assert');
+const RecursiveResolver = require('../lib/resolver/recursive');
+const UnboundResolver = require('../lib/resolver/unbound');
 const rdns = require('../lib/rdns');
 const udns = require('../lib/udns');
 const {types, codes} = require('../lib/wire');
@@ -54,6 +56,33 @@ const noNodataNames = [
 
 describe('Recursive', function() {
   this.timeout(10000);
+
+  for (const Resolver of [RecursiveResolver, UnboundResolver]) {
+    it('should do a recursive resolution', async () => {
+      const res = new Resolver({
+        tcp: true,
+        inet6: true,
+        edns: true,
+        dnssec: true
+      });
+
+      res.hints.setDefault();
+
+      res.on('error', (err) => {
+        throw err;
+      });
+
+      await res.open();
+
+      const msg = await res.lookup('google.com.', types.A);
+      assert(msg.code === codes.NOERROR);
+      assert(msg.answer.length > 0);
+      assert(msg.answer[0].name === 'google.com.');
+      assert(msg.answer[0].type === types.A);
+
+      await res.close();
+    });
+  }
 
   for (const dns of [rdns, udns]) {
     for (const name of dnssecNames) {

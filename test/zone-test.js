@@ -7,7 +7,7 @@ const assert = require('./util/assert');
 const Path = require('path');
 const wire = require('../lib/wire');
 const Zone = require('../lib/zone');
-const {types} = wire;
+const {types, codes} = wire;
 
 const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
 
@@ -73,15 +73,23 @@ describe('Zone', function() {
 
     assert.strictEqual(zone.names.size, 5717);
 
-    const msg = zone.resolve('com.', types.NS);
-    const expect = wire.fromZone(comResponse);
+    {
+      const msg = zone.resolve('com.', types.NS);
+      assert(msg.code === codes.NOERROR);
 
-    assert.deepStrictEqual(msg.answer, expect);
+      const expect = wire.fromZone(comResponse);
 
-    const msg2 = zone.resolve('idontexist.', types.A);
-    assert(msg2.answer.length === 0);
-    const expect2 = wire.fromZone(nxResponse);
+      assert.deepStrictEqual(msg.answer, expect);
+    }
 
-    assert.deepStrictEqual(msg2.authority, expect2);
+    {
+      const msg = zone.resolve('idontexist.', types.A);
+      assert(msg.code === codes.NXDOMAIN);
+      assert(msg.answer.length === 0);
+
+      const expect = wire.fromZone(nxResponse);
+
+      assert.deepStrictEqual(msg.authority, expect);
+    }
   });
 });

@@ -57,7 +57,7 @@ const provableNames = [
   ['internetsociety.org.', false, true] // 33 bit exponent
 ];
 
-describe('Ownership', function() {
+describe('Proof', function() {
   this.timeout(10000);
 
   for (const [name, secure, weak] of provableNames) {

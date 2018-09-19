@@ -4,11 +4,17 @@
 'use strict';
 
 const assert = require('./util/assert');
+const Path = require('path');
 const util = require('../lib/util');
 const wire = require('../lib/wire');
 const Server = require('../lib/server/dns');
 const api = require('../lib/dns');
-const {types} = wire;
+const StubResolver = require('../lib/resolver/stub');
+const RecursiveResolver = require('../lib/resolver/recursive');
+const UnboundResolver = require('../lib/resolver/unbound');
+const AuthServer = require('../lib/server/auth');
+const RecursiveServer = require('../lib/server/recursive');
+const {types, codes, Record, KSK_2010} = wire;
 
 // Mimic the records in `stub-test.js`.
 const records = {
@@ -107,6 +113,10 @@ describe('Server', function() {
       edns: true,
       ednsSize: 4096,
       dnssec: true
+    });
+
+    server.on('error', (err) => {
+      throw err;
     });
 
     server.on('query', (req, res, rinfo) => {
@@ -314,5 +324,245 @@ describe('Server', function() {
 
   it('should close server', async () => {
     await server.close();
+  });
+
+  describe('Full Setup', function() {
+    const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
+
+    const comResponse = `
+      com. 172800 IN NS a.gtld-servers.net.
+      com. 172800 IN NS b.gtld-servers.net.
+      com. 172800 IN NS c.gtld-servers.net.
+      com. 172800 IN NS d.gtld-servers.net.
+      com. 172800 IN NS e.gtld-servers.net.
+      com. 172800 IN NS f.gtld-servers.net.
+      com. 172800 IN NS g.gtld-servers.net.
+      com. 172800 IN NS h.gtld-servers.net.
+      com. 172800 IN NS i.gtld-servers.net.
+      com. 172800 IN NS j.gtld-servers.net.
+      com. 172800 IN NS k.gtld-servers.net.
+      com. 172800 IN NS l.gtld-servers.net.
+      com. 172800 IN NS m.gtld-servers.net.
+    `.replace(/^ */gm, '');
+
+    const nxResponse = `
+      . 86400 IN SOA a.root-servers.net. nstld.verisign-grs.com. (
+        2018080200 1800 900 604800 86400
+      )
+
+      . 86400 IN RRSIG SOA 8 0 86400 20180815050000 20180802040000 41656 . (
+        X/yeZjlX2H6BugnNCekXYRXSNkzq8zW7XKfRyBq0F9Z0aZ+BGcUNSRWG
+        rrHXDWfcTSDTBlWq0Vq7Bec5ZOvDwRm1anCWhG0wejliC3rxhCK4O+Eg
+        LelKscLA99K3jaKL3CKRRVitk08IRGxHCX725kk+GAR3/gWQnhXmO3DM
+        vmC5DVWCMCa3Jywnij4CsoaNqMczm/KKztk/i/lRlw0h+nVND73fgRMc
+        0NDXkv/oJJo9zzk877nfvS1B0fNwmgwRjA6Luj753u5VDYbpxDjUxXXn
+        eklu1LBO0SMvCk2opUvB5ADJ5JCYRvmB4Rll42vaB6gUbuJOoOTnY/tU
+        KgV9gg==
+      )
+
+      id. 86400 IN NSEC ie. NS DS RRSIG NSEC
+
+      id. 86400 IN RRSIG NSEC 8 1 86400 20180815050000 20180802040000 41656 . (
+        TkoEX0Eb9ObbVUvZ7CzCTIOSg6dF/IQMWwUFOyXxL2jwZiEGOpMw6YDY
+        yGl1rl5SD3zXd3/Gs0XICu4DA7E3PALCWttwRC5K47qBqx5RgfL53rT9
+        r0wINeuf0hhtYGJKvOxXOxqnzrop48xWbpFBu/ftA1CeRsNxqqyWbGzQ
+        QFoArL+kdbFbivyUDFWHXBdwZ8t7iN1APhHf9R0ZNR2CRMqeTw4C/Bls
+        aF26wviT+6TkkQBcLYPlUnZWj+R1eJjA5hlUvvjY53x9EYapIpr+qf49
+        QyUq/H3QtdNrrU+pNcbxuJby0jB+txvrAQfWXJ0hXYqHUnMqfQIny/gN
+        ihwlkA==
+      )
+
+      . 86400 IN NSEC aaa. NS SOA RRSIG NSEC DNSKEY
+
+      . 86400 IN RRSIG NSEC 8 0 86400 20180815050000 20180802040000 41656 . (
+        gyyjLKjueKD4ho7bMZJ5Vvlxf7y0sDz9uzHCV4w06zNtCzMNkrkjKYR+
+        z0UsoNBHaSSKU1HfIVZCr7VDnrT9V68CAG1Ry4qXJZiNudmXNVkNhMJw
+        fBEIhiTiQpW8XxdRuaQz1aPSmI4uViiJ2mxjoBysSqJY3wrjK5sa/7dL
+        T+LEdEBchPDQPQqLFCAfkjgaCXIn8iqtegqSbrjhMXkSq3E43Gw5YHnE
+        rw+dgI4osARUMP1MdsWUH9CAsa0hXsXA/MJUgr2RYmdLdghZHPZPiCwf
+        cGS7GqyJ2LHm+5twVDcsVnQzRDwoaoFG6i49bq75/qAWB1gmKs0kzd6I
+        0kyi7A==
+      )
+    `.replace(/^ */gm, '');
+
+    let authServer = null;
+    let recServer = null;
+    let authQueries = 0;
+    let recQueries = 0;
+
+    it('should open authoritative server', async () => {
+      authServer = new AuthServer({
+        tcp: true,
+        edns: true,
+        dnssec: true
+      });
+
+      authServer.on('error', (err) => {
+        throw err;
+      });
+
+      authServer.on('query', () => {
+        authQueries += 1;
+      });
+
+      authServer.setOrigin('.');
+      authServer.setFile(ROOT_ZONE);
+
+      await authServer.bind(5301, '127.0.0.1');
+    });
+
+    it('should open recursive server', async () => {
+      recServer = new RecursiveServer({
+        tcp: true,
+        inet6: true,
+        edns: true,
+        dnssec: true
+      });
+
+      recServer.on('error', (err) => {
+        throw err;
+      });
+
+      recServer.on('query', () => {
+        recQueries += 1;
+      });
+
+      recServer.resolver.setStub(
+        '127.0.0.1',
+        5301,
+        Record.fromString(KSK_2010)
+      );
+
+      await recServer.bind(5302, '127.0.0.1');
+    });
+
+    it('should query authoritative server (stub)', async () => {
+      const stub = new StubResolver({
+        rd: false,
+        cd: false,
+        edns: true,
+        ednsSize: 4096,
+        dnssec: true,
+        hosts: [
+          ['localhost.', '127.0.0.1'],
+          ['localhost.', '::1']
+        ],
+        servers: ['127.0.0.1:5301']
+      });
+
+      stub.on('error', (err) => {
+        throw err;
+      });
+
+      await stub.open();
+
+      {
+        const msg = await stub.lookup('com.', types.NS);
+        assert(msg.code === codes.NOERROR);
+
+        const expect = wire.fromZone(comResponse);
+        assert.deepStrictEqual(msg.answer, expect);
+      }
+
+      {
+        const msg = await stub.lookup('idontexist.', types.A);
+        assert(msg.code === codes.NXDOMAIN);
+        assert(msg.answer.length === 0);
+
+        const expect = wire.fromZone(nxResponse);
+        assert.deepStrictEqual(msg.authority, expect);
+      }
+
+      await stub.close();
+    });
+
+    it('should query recursive server (stub)', async () => {
+      const stub = new StubResolver({
+        rd: true,
+        cd: false,
+        edns: true,
+        ednsSize: 4096,
+        dnssec: true,
+        hosts: [
+          ['localhost.', '127.0.0.1'],
+          ['localhost.', '::1']
+        ],
+        servers: ['127.0.0.1:5302']
+      });
+
+      stub.on('error', (err) => {
+        throw err;
+      });
+
+      await stub.open();
+
+      const msg = await stub.lookup('google.com.', types.A);
+      assert(msg.code === codes.NOERROR);
+      assert(msg.answer.length > 0);
+      assert(msg.answer[0].name === 'google.com.');
+      assert(msg.answer[0].type === types.A);
+
+      await stub.close();
+    });
+
+    it('should do a recursive resolution', async () => {
+      const res = new RecursiveResolver({
+        tcp: true,
+        inet6: true,
+        edns: true,
+        dnssec: true
+      });
+
+      res.setStub('127.0.0.1', 5301, Record.fromString(KSK_2010));
+
+      res.on('error', (err) => {
+        throw err;
+      });
+
+      await res.open();
+
+      const msg = await res.lookup('google.com.', types.A);
+      assert(msg.code === codes.NOERROR);
+      assert(msg.answer.length > 0);
+      assert(msg.answer[0].name === 'google.com.');
+      assert(msg.answer[0].type === types.A);
+
+      await res.close();
+    });
+
+    it('should do a recursive resolution (unbound)', async () => {
+      const res = new UnboundResolver({
+        tcp: true,
+        inet6: true,
+        edns: true,
+        dnssec: true
+      });
+
+      res.setStub('127.0.0.1', 5301, Record.fromString(KSK_2010));
+
+      res.on('error', (err) => {
+        throw err;
+      });
+
+      await res.open();
+
+      const msg = await res.lookup('google.com.', types.A);
+      assert(msg.code === codes.NOERROR);
+      assert(msg.answer.length > 0);
+      assert(msg.answer[0].name === 'google.com.');
+      assert(msg.answer[0].type === types.A);
+
+      await res.close();
+    });
+
+    it('should have total requests', () => {
+      assert.strictEqual(authQueries, 8);
+      assert.strictEqual(recQueries, 1);
+    });
+
+    it('should close servers', async () => {
+      await recServer.close();
+      await authServer.close();
+    });
   });
 });
