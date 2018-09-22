@@ -4,7 +4,7 @@
 'use strict';
 
 const assert = require('./util/assert');
-const iana = require('../lib/iana');
+const iana = require('../lib/internal/iana');
 
 describe('IANA', function() {
   it('should have services and ports', () => {

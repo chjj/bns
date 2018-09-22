@@ -56,7 +56,7 @@
     "node": ">=8.0.0"
   },
   "browser": {
-    "./lib/lazy": "./lib/lazy-browser.js",
+    "./lib/internal/lazy": "./lib/internal/lazy-browser.js",
     "./lib/resolver/unbound": "./lib/resolver/unbound-browser.js"
   }
 }
