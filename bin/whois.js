@@ -8,7 +8,7 @@ const tcp = require('btcp');
 const dns = require('../lib/dns');
 const encoding = require('../lib/encoding');
 const util = require('../lib/util');
-const whois = require('../hints/whois.json');
+const whois = require('../etc/whois.json');
 
 function getServer(name) {
   const labels = util.split(name);
