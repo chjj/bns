@@ -13,16 +13,19 @@ const api = require('../lib/dns');
 const StubResolver = require('../lib/resolver/stub');
 const RecursiveResolver = require('../lib/resolver/recursive');
 const UnboundResolver = require('../lib/resolver/unbound');
+const RootResolver = require('../lib/resolver/root');
 const AuthServer = require('../lib/server/auth');
 const RecursiveServer = require('../lib/server/recursive');
 const {types, codes, Record, KSK_2010} = wire;
 
 const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
 const COM_RESPONSE = Path.resolve(__dirname, 'data', 'com-response.zone');
+const COM_GLUE = Path.resolve(__dirname, 'data', 'com-glue.zone');
 const NX_RESPONSE = Path.resolve(__dirname, 'data', 'nx-response.zone');
 
 const serverRecords = require('./data/server-records.json');
 const comResponse = fs.readFileSync(COM_RESPONSE, 'utf8');
+const comGlue = fs.readFileSync(COM_GLUE, 'utf8');
 const nxResponse = fs.readFileSync(NX_RESPONSE, 'utf8');
 
 describe('Server', function() {
@@ -331,13 +334,18 @@ describe('Server', function() {
     {
       const msg = await stub.lookup('com.', types.NS);
       assert(msg.code === codes.NOERROR);
+      assert(!msg.aa);
 
       const expect = wire.fromZone(comResponse);
-      assert.deepStrictEqual(msg.answer, expect);
+      assert.deepStrictEqual(msg.authority, expect);
+
+      const glue = wire.fromZone(comGlue);
+      assert.deepStrictEqual(msg.additional, glue);
     }
 
     {
       const msg = await stub.lookup('idontexist.', types.A);
+      assert(!msg.aa);
       assert(msg.code === codes.NXDOMAIN);
       assert(msg.answer.length === 0);
 
@@ -427,8 +435,46 @@ describe('Server', function() {
     await res.close();
   });
 
+  it('should do a root resolution', async () => {
+    const res = new RootResolver({
+      tcp: true,
+      inet6: true,
+      edns: true,
+      dnssec: true
+    });
+
+    res.on('error', (err) => {
+      throw err;
+    });
+
+    res.servers = [{
+      host: '127.0.0.1',
+      port: 5301
+    }];
+
+    await res.open();
+
+    util.fakeTime('2018-08-05:00:00.000Z');
+
+    const msg = await res.lookup('com.');
+    assert(msg.code === codes.NOERROR);
+    assert(!msg.aa);
+    assert(msg.ad);
+
+    const expect = wire.fromZone(comResponse);
+    expect.pop(); // pop signature
+    assert.deepStrictEqual(msg.authority, expect);
+
+    const glue = wire.fromZone(comGlue);
+    assert.deepStrictEqual(msg.additional, glue);
+
+    util.fakeTime();
+
+    await res.close();
+  });
+
   it('should have total requests', () => {
-    assert.strictEqual(authQueries, 8);
+    assert.strictEqual(authQueries, 16);
     assert.strictEqual(recQueries, 1);
   });
 

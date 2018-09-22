@@ -12,9 +12,11 @@ const {types, codes} = wire;
 
 const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
 const COM_RESPONSE = Path.resolve(__dirname, 'data', 'com-response.zone');
+const COM_GLUE = Path.resolve(__dirname, 'data', 'com-glue.zone');
 const NX_RESPONSE = Path.resolve(__dirname, 'data', 'nx-response.zone');
 
 const comResponse = fs.readFileSync(COM_RESPONSE, 'utf8');
+const comGlue = fs.readFileSync(COM_GLUE, 'utf8');
 const nxResponse = fs.readFileSync(NX_RESPONSE, 'utf8');
 
 describe('Zone', function() {
@@ -26,15 +28,21 @@ describe('Zone', function() {
     {
       const msg = zone.resolve('com.', types.NS);
       assert(msg.code === codes.NOERROR);
+      assert(!msg.aa);
 
       const expect = wire.fromZone(comResponse);
 
-      assert.deepStrictEqual(msg.answer, expect);
+      assert.deepStrictEqual(msg.authority, expect);
+
+      const glue = wire.fromZone(comGlue);
+
+      assert.deepStrictEqual(msg.additional, glue);
     }
 
     {
       const msg = zone.resolve('idontexist.', types.A);
       assert(msg.code === codes.NXDOMAIN);
+      assert(!msg.aa);
       assert(msg.answer.length === 0);
 
       const expect = wire.fromZone(nxResponse);
