@@ -15,6 +15,8 @@ const MSG_RAW = Path.resolve(__dirname, 'data', 'msg-raw.json');
 const MSG_JSON = Path.resolve(__dirname, 'data', 'msg-json.json');
 
 describe('Wire', function() {
+  this.timeout(20000);
+
   describe('Root Zone File', function() {
     let rootZone = null;
     let rootJson = null;

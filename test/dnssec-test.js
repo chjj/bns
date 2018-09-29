@@ -21,6 +21,8 @@ const ED25519_TEST = Path.resolve(__dirname, 'data', 'ed25519-test.zone');
 const KEY_DIR = Path.resolve(__dirname, 'data');
 
 describe('DNSSEC', function() {
+  this.timeout(30000);
+
   for (const vectors of [vectors1, vectors2, vectors3, vectors4, vectors5]) {
     it(`should parse and verify ${vectors.length} signatures`, () => {
       for (const vector of vectors) {

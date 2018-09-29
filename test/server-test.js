@@ -29,7 +29,7 @@ const comGlue = fs.readFileSync(COM_GLUE, 'utf8');
 const nxResponse = fs.readFileSync(NX_RESPONSE, 'utf8');
 
 describe('Server', function() {
-  this.timeout(5000);
+  this.timeout(20000);
 
   let server = null;
   let dns = null;

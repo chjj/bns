@@ -20,6 +20,8 @@ const comGlue = fs.readFileSync(COM_GLUE, 'utf8');
 const nxResponse = fs.readFileSync(NX_RESPONSE, 'utf8');
 
 describe('Zone', function() {
+  this.timeout(10000);
+
   it('should serve root zone', () => {
     const zone = Zone.fromFile('.', ROOT_ZONE);
 
