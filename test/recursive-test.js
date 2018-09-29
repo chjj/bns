@@ -55,13 +55,13 @@ const noNodataNames = [
 ];
 
 describe('Recursive', function() {
-  this.timeout(10000);
+  this.timeout(20000);
 
   for (const Resolver of [RecursiveResolver, UnboundResolver]) {
     it('should do a recursive resolution', async () => {
       const res = new Resolver({
         tcp: true,
-        inet6: true,
+        inet6: false,
         edns: true,
         dnssec: true
       });
