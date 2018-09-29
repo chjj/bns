@@ -43,7 +43,6 @@ describe('Server', function() {
       tcp: true,
       maxConnections: 20,
       edns: true,
-      ednsSize: 4096,
       dnssec: true
     });
 
@@ -318,7 +317,6 @@ describe('Server', function() {
       rd: false,
       cd: false,
       edns: true,
-      ednsSize: 4096,
       dnssec: true,
       hosts: [
         ['localhost.', '127.0.0.1'],
@@ -363,7 +361,6 @@ describe('Server', function() {
       rd: true,
       cd: false,
       edns: true,
-      ednsSize: 4096,
       dnssec: true,
       hosts: [
         ['localhost.', '127.0.0.1'],
