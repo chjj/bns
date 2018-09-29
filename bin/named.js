@@ -22,9 +22,9 @@ let hintsFile = null;
 let origin = '.';
 let zoneFile = null;
 let inet6 = null;
-let tcp = null;
-let edns = null;
-let dnssec = null;
+let tcp = true;
+let edns = true;
+let dnssec = false;
 let debug = false;
 
 for (let i = 2; i < process.argv.length; i++) {
