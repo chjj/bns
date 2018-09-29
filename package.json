@@ -35,21 +35,20 @@
     "test-file": "mocha --reporter spec"
   },
   "dependencies": {
-    "bcrypto": "~1.1.0",
-    "bfile": "~0.1.1",
-    "bheep": "~0.1.1",
-    "binet": "~0.3.1",
-    "bs32": "~0.1.1",
+    "bcrypto": "~2.0.0",
+    "bfile": "~0.1.2",
+    "bheep": "~0.1.2",
+    "binet": "~0.3.2",
+    "bs32": "~0.1.2",
     "bsert": "~0.0.4",
-    "btcp": "~0.1.1",
-    "budp": "~0.1.1",
-    "bufio": "~1.0.1"
+    "btcp": "~0.1.2",
+    "budp": "~0.1.2",
+    "bufio": "~1.0.2"
   },
   "optionalDependencies": {
-    "unbound": "~0.1.0"
+    "unbound": "~0.1.1"
   },
   "devDependencies": {
-    "eslint": "^5.6.0",
     "mocha": "^5.2.0"
   },
   "engines": {
