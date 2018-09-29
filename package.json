@@ -46,7 +46,7 @@
     "bufio": "~1.0.2"
   },
   "optionalDependencies": {
-    "unbound": "~0.1.1"
+    "unbound": "~0.2.0"
   },
   "devDependencies": {
     "mocha": "^5.2.0"
