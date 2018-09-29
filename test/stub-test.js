@@ -25,6 +25,8 @@ function sort(items) {
 }
 
 describe('Stub', function() {
+  this.timeout(20000);
+
   const bns = new api.Resolver();
 
   it('should resolve', async () => {
