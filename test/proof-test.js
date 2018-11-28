@@ -14,7 +14,8 @@ function verifyProof(name, ownership, proof, weak) {
   assert(ownership.verifyTimes(proof, util.now()), `${name}: invalid-times`);
   assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
   assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
-  assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
+  // Not necessarily true anymore:
+  // assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
 }
 
 async function testOwnership(name, secure, weak) {
