@@ -23,7 +23,8 @@ const dnssecNames = [
   'www.ietf.org',
   'www.iana.org',
   'internetsociety.org', // 33 bit exponent
-  'ed25519.nl'
+  'ed25519.nl',
+  'ed448.nl'
 ];
 
 const nxNames = [
@@ -86,8 +87,11 @@ describe('Recursive', function() {
 
   for (const dns of [rdns, udns]) {
     for (const name of dnssecNames) {
-      if (name === 'ed25519.nl' && dns === udns)
-        continue;
+      if (name === 'ed25519.nl' || name === 'ed448.nl') {
+        if (dns === udns && udns.version < '1.8.1')
+          continue;
+      }
+
       it(`should validate trust chain for ${name}`, async () => {
         const res = await dns.resolveRaw(name, types.A);
         assert.strictEqual(res.code, codes.NOERROR);

@@ -18,6 +18,7 @@ const {Record} = wire;
 
 const DSA_TEST = Path.resolve(__dirname, 'data', 'dsa-test.zone');
 const ED25519_TEST = Path.resolve(__dirname, 'data', 'ed25519-test.zone');
+const ED448_TEST = Path.resolve(__dirname, 'data', 'ed448-test.zone');
 const KEY_DIR = Path.resolve(__dirname, 'data');
 
 describe('DNSSEC', function() {
@@ -171,6 +172,48 @@ describe('DNSSEC', function() {
       const sig = dnssec.sign(key, priv, [rr]);
 
       assert(dnssec.verify(sig, key, [rr]));
+    });
+  }
+
+  it('should create GOST94 DS record', () => {
+    // https://tools.ietf.org/html/rfc5933#section-4.1
+    const rrText = `
+      example.net. 86400 DNSKEY  257 3 12 (
+        LMgXRHzSbIJGn6i16K+sDjaDf/k1o9DbxScO
+        gEYqYS/rlh2Mf+BRAY3QHPbwoPh2fkDKBroF
+        SRGR7ZYcx+YIQw==
+      ) ; key id = 40692
+    `.replace(/^ +/gm, '');
+
+    const dsText = `
+      example.net. 3600 IN DS 40692 12 3 (
+        22261A8B0E0D799183E35E24E2AD6BB58533CBA7E3B14D659E9CA09B
+        2071398F
+      )
+    `.replace(/^ +/gm, '');
+
+    const rr = Record.fromString(rrText);
+    const ds = dnssec.createDS(rr, dnssec.hashes.GOST94);
+    const expect = Record.fromString(dsText);
+
+    assert.bufferEqual(ds.data.digest, expect.data.digest);
+  });
+
+  {
+    const str = fs.readFileSync(ED448_TEST, 'utf8');
+    const parts = str.split(/\n+/);
+    const keyText = parts[0].trim();
+    const rrText = parts[1].trim();
+    const sigText = parts[2].trim();
+
+    it('should verify ed448 signature', () => {
+      const key = Record.fromString(keyText);
+      const rr = Record.fromString(rrText);
+      const sig = Record.fromString(sigText);
+
+      assert.strictEqual(dnssec.verify(sig, key, [rr]), true);
+      sig.data.signature[sig.data.signature.length * Math.random() | 0] ^= 1;
+      assert.strictEqual(!dnssec.verify(sig, key, [rr]), true);
     });
   }
 });
