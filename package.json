@@ -1,6 +1,6 @@
 {
   "name": "bns",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "DNS bike-shed",
   "keywords": [
     "bns",
@@ -35,18 +35,18 @@
     "test-file": "bmocha --reporter spec"
   },
   "dependencies": {
-    "bcrypto": "~3.0.0",
-    "bfile": "~0.1.2",
-    "bheep": "~0.1.2",
-    "binet": "~0.3.2",
-    "bs32": "~0.1.2",
-    "bsert": "~0.0.4",
-    "btcp": "~0.1.2",
-    "budp": "~0.1.2",
-    "bufio": "~1.0.2"
+    "bcrypto": "~3.0.1",
+    "bfile": "~0.1.3",
+    "bheep": "~0.1.3",
+    "binet": "~0.3.3",
+    "bs32": "~0.1.3",
+    "bsert": "~0.0.5",
+    "btcp": "~0.1.3",
+    "budp": "~0.1.3",
+    "bufio": "~1.0.3"
   },
   "optionalDependencies": {
-    "unbound": "~0.2.1"
+    "unbound": "~0.2.2"
   },
   "devDependencies": {
     "bmocha": "^0.1.0"
