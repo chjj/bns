@@ -14,8 +14,6 @@ function verifyProof(name, ownership, proof, weak) {
   assert(ownership.verifyTimes(proof, util.now()), `${name}: invalid-times`);
   assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
   assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
-  // Not necessarily true anymore:
-  // assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
 }
 
 async function testOwnership(name, secure, weak) {
@@ -45,8 +43,6 @@ async function testOwnership(name, secure, weak) {
 
 const provableNames = [
   ['cloudflare.com.', true, true],
-  // ['dnssec-name-and-shame.com.', true, true], // No TXT records
-  // ['getdnsapi.net.', true, true], // No TXT records
   ['nlnetlabs.nl.', true, true],
   ['nlnet.nl.', true, true],
   ['verisigninc.com.', true, true],
@@ -55,7 +51,7 @@ const provableNames = [
   ['opendnssec.org.', false, true],
   ['ietf.org.', false, true],
   ['iana.org.', false, true],
-  ['internetsociety.org.', false, true] // 33 bit exponent
+  ['internetsociety.org.', false, true]
 ];
 
 describe('Proof', function() {

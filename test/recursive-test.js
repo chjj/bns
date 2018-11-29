@@ -13,7 +13,6 @@ const {types, codes} = require('../lib/wire');
 const dnssecNames = [
   'cloudflare.com',
   'dnssec-name-and-shame.com',
-  'getdnsapi.net',
   'nlnetlabs.nl',
   'nlnet.nl',
   'labs.verisigninc.com',
@@ -22,23 +21,19 @@ const dnssecNames = [
   'www.opendnssec.org',
   'www.ietf.org',
   'www.iana.org',
-  'internetsociety.org', // 33 bit exponent
+  'internetsociety.org',
   'ed25519.nl',
   'ed448.nl'
 ];
 
 const nxNames = [
   'ww.dnssec-name-and-shame.com',
-  // 'ww.getdnsapi.net',
   'ww.nlnet.nl',
   'ww.opendnssec.org'
-  // 'nxdomain1234567890.be',
-  // 'nx.nxdomain1234567890.be'
 ];
 
 const nodataNames = [
   'dnssec-name-and-shame.com',
-  // 'getdnsapi.net',
   'nlnet.nl',
   'www.opendnssec.org'
 ];
