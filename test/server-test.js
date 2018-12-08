@@ -28,6 +28,9 @@ const comResponse = fs.readFileSync(COM_RESPONSE, 'utf8');
 const comGlue = fs.readFileSync(COM_GLUE, 'utf8');
 const nxResponse = fs.readFileSync(NX_RESPONSE, 'utf8');
 
+if (process.browser)
+  return;
+
 describe('Server', function() {
   this.timeout(20000);
 

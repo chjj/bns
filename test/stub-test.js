@@ -24,6 +24,9 @@ function sort(items) {
   });
 }
 
+if (process.browser)
+  return;
+
 describe('Stub', function() {
   this.timeout(20000);
 

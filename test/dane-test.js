@@ -103,6 +103,9 @@ describe('DANE', function() {
     assert(tlsa.verify(rr, cert, 'www.huque.com', 'tcp', 443));
   });
 
+  if (process.browser)
+    return;
+
   it('should verify spki+sha256 cert (www.ietf.org)', async () => {
     const cert = fromBase64(`
       MIIFUTCCBDmgAwIBAgIIITAshaEP0OswDQYJKoZIhvcNAQELBQAwgcYxCzAJBgNV

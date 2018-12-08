@@ -50,6 +50,9 @@ const noNodataNames = [
   'google.com'
 ];
 
+if (process.browser)
+  return;
+
 describe('Recursive', function() {
   this.timeout(20000);
 

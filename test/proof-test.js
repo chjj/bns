@@ -54,6 +54,9 @@ const provableNames = [
   ['internetsociety.org.', false, true]
 ];
 
+if (process.browser)
+  return;
+
 describe('Proof', function() {
   this.timeout(10000);
 
