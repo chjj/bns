@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const Authority = require('../lib/authority');
 const Hints = require('../lib/hints');
 

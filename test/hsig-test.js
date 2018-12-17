@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const hsig = require('../lib/hsig');
 const wire = require('../lib/wire');
 

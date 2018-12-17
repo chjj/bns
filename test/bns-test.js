@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 
 describe('BNS', function() {
   it('should require BNS', () => {

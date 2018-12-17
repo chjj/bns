@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const Path = require('path');
 const fs = require('bfile');
 const util = require('../lib/util');

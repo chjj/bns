@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const dns = require('dns').promises;
 const api = require('../lib/dns');
 const util = require('../lib/util');

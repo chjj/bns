@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const Ownership = require('../lib/ownership');
 const vectors = require('./data/ownership.json');
 const {OwnershipProof} = Ownership;

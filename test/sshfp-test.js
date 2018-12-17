@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const sshfp = require('../lib/sshfp');
 const {algs, hashes} = sshfp;
 

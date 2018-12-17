@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const wire = require('../lib/wire');
 const Cache = require('../lib/cache');
 

@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const constants = require('../lib/constants');
 const encoding = require('../lib/encoding');
 const {types} = constants;

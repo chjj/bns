@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const iana = require('../lib/internal/iana');
 
 describe('IANA', function() {

@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const RecursiveResolver = require('../lib/resolver/recursive');
 const UnboundResolver = require('../lib/resolver/unbound');
 const rdns = require('../lib/rdns');

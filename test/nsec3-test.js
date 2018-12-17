@@ -3,7 +3,7 @@
 
 'use strict';
 
-const assert = require('./util/assert');
+const assert = require('bsert');
 const nsec3 = require('../lib/nsec3');
 const wire = require('../lib/wire');
 const vectors = require('./data/nsec3-vectors.json');
