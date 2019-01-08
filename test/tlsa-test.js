@@ -266,5 +266,4 @@ describe('TLSA', function() {
 
     assert(valid);
   });
-
 });
