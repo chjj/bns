@@ -264,13 +264,13 @@ describe('Punycode', () => {
 
     it('throws RangeError: Illegal input >= 0x80', () => {
       assert.throws(() => {
-        punycode.decodeLabel('\x81-');
+        punycode.decodeRaw('\x81-');
       }, RangeError);
     });
 
     it('throws RangeError: Overflow: input needs wider integers', () => {
       assert.throws(() => {
-        punycode.decodeLabel('\x81');
+        punycode.decodeRaw('\x81');
       }, RangeError);
     });
   });
@@ -294,22 +294,22 @@ describe('Punycode', () => {
     });
   });
 
-  describe('decodeLabel', () => {
+  describe('decodeRaw', () => {
     for (const vector of vectors.strings) {
       it(vector.description || vector.encoded, () => {
-        assert.deepEqual(punycode.decodeLabel(vector.encoded), vector.decoded);
+        assert.deepEqual(punycode.decodeRaw(vector.encoded), vector.decoded);
       });
     }
 
     it('handles uppercase Z', () => {
-      assert.deepEqual(punycode.decodeLabel('ZZZ'), '\u7BA5');
+      assert.deepEqual(punycode.decodeRaw('ZZZ'), '\u7BA5');
     });
   });
 
-  describe('encodeLabel', () => {
+  describe('encodeRaw', () => {
     for (const vector of vectors.strings) {
       it(vector.description || vector.decoded, () => {
-        assert.deepEqual(punycode.encodeLabel(vector.decoded), vector.encoded);
+        assert.deepEqual(punycode.encodeRaw(vector.decoded), vector.encoded);
       });
     }
   });
