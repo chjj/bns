@@ -392,7 +392,8 @@ describe('Server', function() {
       tcp: true,
       inet6: true,
       edns: true,
-      dnssec: true
+      dnssec: true,
+      forceTCP: true
     });
 
     res.setStub('127.0.0.1', 5301, Record.fromString(KSK_2010));
