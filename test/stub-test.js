@@ -42,7 +42,7 @@ describe('Stub', function() {
       assert.deepStrictEqual(sort(x), sort(y), `dns.${method}('${name}')`);
     };
 
-    await test('lookup', 'icanhazip.com');
+    // await test('lookup', 'icanhazip.com');
     // await test('lookupService', '172.217.0.46', 80);
     // await test('resolveAny', 'google.com');
     await test('resolve4', 'icanhazip.com');
