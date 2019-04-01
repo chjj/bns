@@ -35,7 +35,7 @@
     "test-file": "bmocha --reporter spec"
   },
   "dependencies": {
-    "bcrypto": "~3.0.3",
+    "bcrypto": "~3.1.0",
     "bfile": "~0.2.1",
     "bheep": "~0.1.5",
     "binet": "~0.3.5",
@@ -46,7 +46,7 @@
     "bufio": "~1.0.6"
   },
   "optionalDependencies": {
-    "unbound": "~0.3.2"
+    "unbound": "~0.3.4"
   },
   "devDependencies": {
     "bmocha": "^2.1.0"
