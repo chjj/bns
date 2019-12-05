@@ -68,9 +68,9 @@ describe('SIG(0)', function() {
     };
 
     const msgRaw = msg.compress();
-    const signedRaw = sig0.sign(msgRaw, key, priv, null, signer);
+    let signedRaw = sig0.sign(msgRaw, key, priv, null, signer);
 
-    const signed = Message.decode(signedRaw);
+    let signed = Message.decode(signedRaw);
     assert(signed.sig0 instanceof Record);
     assert(signed.sig0.type === types.SIG);
     assert(signed.sig0.data.typeCovered === 0);
@@ -80,7 +80,7 @@ describe('SIG(0)', function() {
       const br = new bio.BufferReader(key.data.publicKey);
       const name = readNameBR(br);
 
-      assert(name === 'secp256k1.');
+      assert(name === hsig.SIG0_ALGO_NAME);
 
       const size = br.data.length - br.offset;
       const publicKey = br.readBytes(size);
@@ -88,5 +88,15 @@ describe('SIG(0)', function() {
     };
 
     assert(sig0.verify(signedRaw, key, verifier));
+
+    signedRaw = hsig.sign(msgRaw, priv);
+
+    signed = Message.decode(signedRaw);
+    assert(signed.sig0 instanceof Record);
+    assert(signed.sig0.type === types.SIG);
+    assert(signed.sig0.data.typeCovered === 0);
+    assert(signed.sig0.data.algorithm === algs.PRIVATEDNS);
+
+    assert(hsig.verify(signedRaw, pub));
   });
 });
