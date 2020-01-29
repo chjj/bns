@@ -1,6 +1,6 @@
 {
   "name": "bns",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "DNS bike-shed",
   "keywords": [
     "bns",
@@ -35,7 +35,7 @@
     "test-file": "bmocha --reporter spec"
   },
   "dependencies": {
-    "bcrypto": "~4.3.0",
+    "bcrypto": "~5.0.0",
     "bfile": "~0.2.1",
     "bheep": "~0.1.5",
     "binet": "~0.3.5",
