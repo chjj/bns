@@ -10,11 +10,9 @@ const {OwnershipProof} = Ownership;
 
 function verifyProof(name, ownership, proof, weak) {
   assert(ownership.isSane(proof), `${name}: invalid-sanity`);
-  // Maybe add 4 hours?
-  assert(ownership.verifyTimes(proof, 1537328775), `${name}: invalid-times`);
+  assert(ownership.verifyTimes(proof, 1580476262), `${name}: invalid-times`);
   assert(ownership.verifySignatures(proof), `${name}: invalid-signatures`);
   assert.strictEqual(ownership.isWeak(proof), weak, `${name}: invalid-weak`);
-  assert(ownership.isKSK2010(proof), `${name}: invalid-ksk`);
 }
 
 describe('Ownership', function() {
@@ -42,8 +40,6 @@ describe('Ownership', function() {
       const untxt = OwnershipProof.fromString(txt);
 
       assert.strictEqual(raw, untxt.toHex());
-
-      return proof;
     });
   }
 });

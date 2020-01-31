@@ -356,18 +356,6 @@
     "class": "IN",
     "type": "DS",
     "data": {
-      "keyTag": 19036,
-      "algorithm": 8,
-      "digestType": 2,
-      "digest": "49aac11d7b6f6446702e54a1607371607a1a41855200fd2ce1cdde32f24e8fb5"
-    }
-  },
-  {
-    "name": ".",
-    "ttl": 172800,
-    "class": "IN",
-    "type": "DS",
-    "data": {
       "keyTag": 20326,
       "algorithm": 8,
       "digestType": 2,
