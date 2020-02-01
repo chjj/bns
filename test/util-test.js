@@ -51,9 +51,10 @@ describe('Util', function() {
     const splits = [
       ['www.miek.nl.', 3],
       ['www.miek.nl', 3],
-      // ['www..miek.nl', 4],
-      // [`www\.miek.nl.`, 2],
-      // [`www\\.miek.nl.`, 3],
+      ['www..miek.nl', 4],
+      ['www\\.miek.nl.', 2],
+      ['www\\\\.miek.nl.', 3],
+      ['www\\\\\\.miek.nl.', 2],
       ['.', 0],
       ['nl.', 1],
       ['nl', 1],
@@ -76,8 +77,24 @@ describe('Util', function() {
       assert.deepStrictEqual(util.split(name), expect, name);
   });
 
+  it('should test nextLabel', () => {
+    const nexts = [
+      [['', 1], 0],
+      [['www.miek.nl.', 0], 4],
+      [['www.miek.nl.', 4], 9],
+      [['www.miek.nl.', 9], 12]
+    ];
+
+    for (const [s, expect] of nexts) {
+      const [x, ok] = util.nextLabel(s[0], s[1]);
+      assert(typeof ok === 'boolean');
+      assert.strictEqual(x, expect, JSON.stringify(s));
+    }
+  });
+
   it('should test prevLabel', () => {
     const prevs = [
+      [['', 1], 0],
       [['www.miek.nl.', 0], 12],
       [['www.miek.nl.', 1], 9],
       [['www.miek.nl.', 2], 4],
@@ -118,9 +135,9 @@ describe('Util', function() {
       ['.', []],
       ['www.miek.nl.', ['www', 'miek', 'nl']],
       ['www.miek.nl', ['www', 'miek', 'nl']],
-      // ['www..miek.nl', ['www', '', 'miek', 'nl']],
-      // [`www\.miek.nl`, [`www\.miek`, 'nl']],
-      // [`www\\.miek.nl`, [`www\\`, 'miek', 'nl']],
+      ['www..miek.nl', ['www', '', 'miek', 'nl']],
+      ['www\\.miek.nl', ['www\\.miek', 'nl']],
+      ['www\\\\.miek.nl', ['www\\\\', 'miek', 'nl']],
       ['.www.miek.nl.', ['', 'www', 'miek', 'nl']]
     ];
 
