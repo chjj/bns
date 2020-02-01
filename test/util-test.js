@@ -309,4 +309,39 @@ describe('Util', function() {
       assert.strictEqual(actual, expected, e1);
     }
   });
+
+  it('should test isFQDN', () => {
+    const vectors = [
+      ['.', true],
+      ['\\.', false],
+      ['\\\\.', true],
+      ['\\\\\\.', false],
+      ['\\\\\\\\.', true],
+      ['a.', true],
+      ['a\\.', false],
+      ['a\\\\.', true],
+      ['a\\\\\\.', false],
+      ['ab.', true],
+      ['ab\\.', false],
+      ['ab\\\\.', true],
+      ['ab\\\\\\.', false],
+      ['..', true],
+      ['.\\.', false],
+      ['.\\\\.', true],
+      ['.\\\\\\.', false],
+      ['example.org.', true],
+      ['example.org\\.', false],
+      ['example.org\\\\.', true],
+      ['example.org\\\\\\.', false],
+      ['example\\.org.', true],
+      ['example\\\\.org.', true],
+      ['example\\\\\\.org.', true],
+      ['\\example.org.', true],
+      ['\\\\example.org.', true],
+      ['\\\\\\example.org.', true]
+    ];
+
+    for (const [s, expect] of vectors)
+      assert.strictEqual(util.isFQDN(s), expect);
+  });
 });
