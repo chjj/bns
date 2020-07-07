@@ -72,7 +72,7 @@ describe('Zone', function() {
     zone.fromString(`${subdomainWithGlue} 21600 IN CNAME ${domain}`);
     // CNAME for subdomain -> other zone
     zone.fromString(`${subdomainNoGlue} 21600 IN CNAME idontexist.`);
-    // SOA to trigger authority flag
+    // SOA
     zone.fromString(
       `${domain} 21600 IN SOA ns1.${domain} admin.${domain} ` +
       '2020070500 86400 7200 604800 300'
@@ -100,7 +100,7 @@ describe('Zone', function() {
     it('should serve TXT record for wildcard', () => {
       const msg = zone.resolve(`idontexist.${domain}`, types.TXT);
       assert(msg.code === codes.NOERROR);
-      assert(!msg.aa);
+      assert(msg.aa);
       assert(msg.authority.length === 0);
       assert(msg.additional.length === 0);
       assert(msg.answer.length === 1);
@@ -111,7 +111,7 @@ describe('Zone', function() {
     it('should serve TXT record for defined subdomain', () => {
       const msg = zone.resolve(`${subdomainWithText}`, types.TXT);
       assert(msg.code === codes.NOERROR);
-      assert(!msg.aa);
+      assert(msg.aa);
       assert(msg.authority.length === 0);
       assert(msg.additional.length === 0);
       assert(msg.answer.length === 1);
@@ -126,14 +126,16 @@ describe('Zone', function() {
 
         const msg = zone.resolve(subdomainWithGlue, types[t]);
         assert(msg.code === codes.NOERROR);
-        assert(!msg.aa);
-        assert(msg.authority.length === 0);
+        assert(msg.aa);
         assert(msg.additional.length === 0);
 
         if (t !== 'A') {
+          assert(msg.authority.length === 1);
           assert(msg.answer.length === 1);
           assert(msg.answer[0].type === types.CNAME);
         } else {
+          assert(msg.authority.length === 0);
+
           let cname = false;
           let a = false;
           for (const an of msg.answer) {
@@ -158,7 +160,7 @@ describe('Zone', function() {
 
         const msg = zone.resolve(subdomainNoGlue, types[t]);
         assert(msg.code === codes.NOERROR);
-        assert(!msg.aa);
+        assert(msg.aa);
         assert(msg.authority.length === 0);
         assert(msg.additional.length === 0);
         assert(msg.answer.length === 1);
@@ -181,22 +183,28 @@ describe('Zone', function() {
     zone.fromString(`${domain} 21600 IN A 10.20.30.40`);
     // CNAME for wildcard -> TXT
     zone.fromString(`* 21600 IN CNAME ${domain}`);
+    // SOA
+    zone.fromString(
+      `${domain} 21600 IN SOA ns1.${domain} admin.${domain} ` +
+      '2020070500 86400 7200 604800 300'
+    );
 
     for (const t of Object.keys(types)) {
       it(`should serve CNAME + glue as answers for type: ${t}`, () => {
-        if (t === 'NS' || t === 'ANY' || t === 'UNKNOWN')
+        if (t === 'NS' || t === 'ANY' || t === 'UNKNOWN' || t === 'SOA')
           this.skip(); // TODO
 
         const msg = zone.resolve(subdomainWithGlue, types[t]);
         assert(msg.code === codes.NOERROR);
-        assert(!msg.aa);
-        assert(msg.authority.length === 0);
+        assert(msg.aa);
         assert(msg.additional.length === 0);
 
         if (t !== 'A') {
+          assert(msg.authority.length === 1);
           assert(msg.answer.length === 1);
           assert(msg.answer[0].type === types.CNAME);
         } else {
+          assert(msg.authority.length === 0);
           let cname = false;
           let a = false;
           for (const an of msg.answer) {
