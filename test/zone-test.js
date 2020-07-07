@@ -121,7 +121,7 @@ describe('Zone', function() {
 
     for (const t of Object.keys(types)) {
       it(`should serve CNAME + glue as answers for type: ${t}`, () => {
-        if (t === 'NS' || t === 'ANY')
+        if (t === 'NS' || t === 'ANY' || t === 'UNKNOWN' || t === 'SOA')
           this.skip(); // TODO
 
         const msg = zone.resolve(subdomainWithGlue, types[t]);
@@ -129,21 +129,25 @@ describe('Zone', function() {
         assert(!msg.aa);
         assert(msg.authority.length === 0);
         assert(msg.additional.length === 0);
-        assert(msg.answer.length === 2);
 
-        let cname = false;
-        let a = false;
-        for (const an of msg.answer) {
-          if (an.type === types.CNAME)
-            cname = true;
+        if (t !== 'A') {
+          assert(msg.answer.length === 1);
+          assert(msg.answer[0].type === types.CNAME);
+        } else {
+          let cname = false;
+          let a = false;
+          for (const an of msg.answer) {
+            if (an.type === types.CNAME)
+              cname = true;
 
-          if (an.type === types.A) {
-            a = true;
-            assert (an.data.address = '10.20.30.40');
+            if (an.type === types.A) {
+              a = true;
+              assert (an.data.address = '10.20.30.40');
+            }
           }
+          assert(cname);
+          assert(a);
         }
-        assert(cname);
-        assert(a);
       });
     }
 
@@ -180,7 +184,7 @@ describe('Zone', function() {
 
     for (const t of Object.keys(types)) {
       it(`should serve CNAME + glue as answers for type: ${t}`, () => {
-        if (t === 'NS' || t === 'ANY')
+        if (t === 'NS' || t === 'ANY' || t === 'UNKNOWN')
           this.skip(); // TODO
 
         const msg = zone.resolve(subdomainWithGlue, types[t]);
@@ -188,21 +192,25 @@ describe('Zone', function() {
         assert(!msg.aa);
         assert(msg.authority.length === 0);
         assert(msg.additional.length === 0);
-        assert(msg.answer.length === 2);
 
-        let cname = false;
-        let a = false;
-        for (const an of msg.answer) {
-          if (an.type === types.CNAME)
-            cname = true;
+        if (t !== 'A') {
+          assert(msg.answer.length === 1);
+          assert(msg.answer[0].type === types.CNAME);
+        } else {
+          let cname = false;
+          let a = false;
+          for (const an of msg.answer) {
+            if (an.type === types.CNAME)
+              cname = true;
 
-          if (an.type === types.A) {
-            a = true;
-            assert (an.data.address = '10.20.30.40');
+            if (an.type === types.A) {
+              a = true;
+              assert (an.data.address = '10.20.30.40');
+            }
           }
+          assert(cname);
+          assert(a);
         }
-        assert(cname);
-        assert(a);
       });
     }
   });
