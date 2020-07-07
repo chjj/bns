@@ -97,6 +97,15 @@ describe('Zone', function() {
       assert(msg.answer.length === 0);
     });
 
+    it('should serve nothing for missing name', () => {
+      const msg = zone.resolve('idontexist.', types.A);
+      assert(msg.code === codes.NXDOMAIN);
+      assert(!msg.aa);
+      assert(msg.authority.length === 0);
+      assert(msg.additional.length === 0);
+      assert(msg.answer.length === 0);
+    });
+
     it('should serve TXT record for wildcard', () => {
       const msg = zone.resolve(`idontexist.${domain}`, types.TXT);
       assert(msg.code === codes.NOERROR);
