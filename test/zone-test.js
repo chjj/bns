@@ -9,6 +9,9 @@ const fs = require('bfile');
 const wire = require('../lib/wire');
 const Zone = require('../lib/zone');
 const {types, codes} = wire;
+const dnssec = require('../lib/dnssec');
+const {RSASHA256} = dnssec.algs;
+const {ZONE, KSK} = dnssec.keyFlags;
 
 const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
 const COM_RESPONSE = Path.resolve(__dirname, 'data', 'com-response.zone');
@@ -153,7 +156,7 @@ describe('Zone', function() {
 
             if (an.type === types.A) {
               a = true;
-              assert (an.data.address = '10.20.30.40');
+              assert (an.data.address === '10.20.30.40');
             }
           }
           assert(cname);
@@ -173,8 +176,8 @@ describe('Zone', function() {
         assert(msg.authority.length === 0);
         assert(msg.additional.length === 0);
         assert(msg.answer.length === 1);
-        assert(msg.answer[0].type = types.CNAME);
-        assert(msg.answer[0].data.target = 'idontexist.');
+        assert(msg.answer[0].type === types.CNAME);
+        assert(msg.answer[0].data.target === 'idontexist.');
       });
     }
   });
@@ -222,7 +225,7 @@ describe('Zone', function() {
 
             if (an.type === types.A) {
               a = true;
-              assert (an.data.address = '10.20.30.40');
+              assert (an.data.address === '10.20.30.40');
             }
           }
           assert(cname);
@@ -230,5 +233,101 @@ describe('Zone', function() {
         }
       });
     }
+  });
+
+  describe('DNSSEC for wildcard', function() {
+    const zone = new Zone();
+    const domain = 'thebnszone.';
+    const subdomain = 'subdomain.' + domain;
+
+    // TLD
+    zone.setOrigin(domain);
+    // Reset zone.
+    zone.clearRecords();
+    // A record for TLD (Common in Handshake, not in DNS)
+    zone.fromString(`${domain} 21600 IN A 10.20.30.40`);
+    // wildcard for subdomains
+    zone.fromString(`*.${domain} 21600 IN A 50.60.70.80`);
+    // SOA
+    zone.fromString(
+      `${domain} 21600 IN SOA ns1.${domain} admin.${domain} ` +
+      '2020070500 86400 7200 604800 300'
+    );
+
+    zone.zskpriv = dnssec.createPrivate(RSASHA256, 2048);
+    zone.zskkey = dnssec.makeKey(domain, RSASHA256, zone.zskpriv, ZONE);
+
+    let wrongsig = null;
+
+    it('should serve signed A record from defined name', () => {
+      const msg = zone.resolve(domain, types.A);
+      assert(msg.code === codes.NOERROR);
+      assert(msg.aa);
+      assert(msg.authority.length === 0);
+      assert(msg.additional.length === 0);
+      assert(msg.answer.length === 2);
+      let rrsig = null;
+      let a = null;
+      for (const an of msg.answer) {
+        if (an.type === types.RRSIG)
+          rrsig = an;
+
+        if (an.type === types.A) {
+          a = an;
+          assert (an.data.address === '10.20.30.40');
+        }
+      }
+      assert(rrsig);
+      assert(a);
+      assert(dnssec.verify(rrsig, zone.zskkey, [a]));
+      wrongsig = rrsig;
+    });
+
+    it('should serve signed A record from wildcard', () => {
+      const msg = zone.resolve(subdomain, types.A);
+      assert(msg.code === codes.NOERROR);
+      assert(msg.aa);
+      assert(msg.authority.length === 0);
+      assert(msg.additional.length === 0);
+      assert(msg.answer.length === 2);
+      let rrsig = null;
+      let a = null;
+      for (const an of msg.answer) {
+        if (an.type === types.RRSIG)
+          rrsig = an;
+
+        if (an.type === types.A) {
+          a = an;
+          assert (an.data.address === '50.60.70.80');
+        }
+      }
+      assert(rrsig);
+      assert(a);
+      assert(dnssec.verify(rrsig, zone.zskkey, [a]));
+    });
+
+    it('should not verify with the wrong signature', () => {
+      const msg = zone.resolve(subdomain, types.A);
+      assert(msg.code === codes.NOERROR);
+      assert(msg.aa);
+      assert(msg.authority.length === 0);
+      assert(msg.additional.length === 0);
+      assert(msg.answer.length === 2);
+      let rrsig = null;
+      let a = null;
+      for (const an of msg.answer) {
+        if (an.type === types.RRSIG)
+          rrsig = an;
+
+        if (an.type === types.A) {
+          a = an;
+          assert (an.data.address === '50.60.70.80');
+        }
+      }
+      assert(rrsig);
+      assert(a);
+      // sanity check
+      assert(!dnssec.verify(wrongsig, zone.zskkey, [a]));
+    });
   });
 });
