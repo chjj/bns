@@ -36972,5 +36972,40 @@
     ],
     "additional": [],
     "size": 78
+  },
+  {
+    "id": 63591,
+    "opcode": "QUERY",
+    "code": "NOERROR",
+    "qr": true,
+    "aa": false,
+    "tc": false,
+    "rd": true,
+    "ra": true,
+    "z": false,
+    "ad": true,
+    "cd": false,
+    "question": [
+      {
+        "name": "thisdomaindoesntexist.cloudflare.com.",
+        "class": "IN",
+        "type": "A"
+      }
+    ],
+    "answer": [],
+    "authority": [
+      {
+        "name": "thisdomaindoesntexist.cloudflare.com.",
+        "ttl": 300,
+        "class": "IN",
+        "type": "NSEC",
+        "data": {
+          "nextDomain": "\\000.thisdomaindoesntexist.cloudflare.com.",
+          "typeBitmap": [46, 47]
+        }
+      }
+    ],
+    "additional": [],
+    "size": 114
   }
 ]

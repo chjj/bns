@@ -90,10 +90,10 @@ describe('Wire', function() {
       msgJson = msgJson_.map(json => Message.fromJSON(json));
       msgRaw = msgRaw_.map(hex => Buffer.from(hex, 'hex'));
 
-      assert.strictEqual(msgJson_.length, 279);
-      assert.strictEqual(msgRaw_.length, 279);
-      assert.strictEqual(msgJson.length, 279);
-      assert.strictEqual(msgRaw.length, 279);
+      assert.strictEqual(msgJson_.length, 280);
+      assert.strictEqual(msgRaw_.length, 280);
+      assert.strictEqual(msgJson.length, 280);
+      assert.strictEqual(msgRaw.length, 280);
       assert.strictEqual(msgJson.length, msgRaw.length);
     });
 
@@ -114,6 +114,15 @@ describe('Wire', function() {
         const msg = msgJson[i];
         deepStrictEqual(Message.decode(msg.compress()), msg);
       }
+    });
+
+    it('should not compress next domain in NSEC records', () => {
+      const msg = msgJson[279];
+      const raw = msgRaw[279];
+      assert(msg instanceof Message);
+      assert(raw instanceof Buffer);
+      assert.strictEqual(msg.id, 63591);
+      assert(raw.equals(msg.compress()));
     });
 
     it('should reencode', () => {
