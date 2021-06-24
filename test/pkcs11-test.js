@@ -8,7 +8,8 @@ const pkcs11js = require('pkcs11js');
 const fs = require('fs');
 const rsa = require('bcrypto/lib/rsa');
 const p256 = require('bcrypto/lib/p256');
-const SHA256 = require('bcrypto/lib/sha256');
+const constants = require('../lib/constants');
+const dnssec = require('../lib/dnssec');
 
 /*
  * REQUIRES installation of SoftHSMv2:
@@ -259,12 +260,14 @@ describe('PKCS#11', function() {
         priv
       );
 
+      const alg = constants.algs['RSASHA256'];
+      const hash = dnssec.algToHash[alg];
+      const hashID = constants.algHashes[alg];
+      const prefix = constants.hashPrefixes[hashID];
+
       const message = Buffer.from('PKCS#11 is REALLY fun to work with - yay!');
-      const hmsg = SHA256.digest(message);
-      // Comment from bcrypto rsa.js:
-      // [RFC8017] Page 37, Section 8.2.2.
-      //           Page 45, Section 9.2.
-      const prefix = Buffer.from('3031300d060960864801650304020105000420', 'hex');
+      const hmsg = hash.digest(message);
+
       // Comment from opendnssec libhsm.c:
       // CKM_RSA_PKCS does the padding, but cannot know the identifier
       // prefix, so we need to add that ourselves.
