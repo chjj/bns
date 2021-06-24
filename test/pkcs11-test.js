@@ -6,10 +6,15 @@
 const assert = require('bsert');
 const pkcs11js = require('pkcs11js');
 const fs = require('fs');
+const path = require('path');
 const rsa = require('bcrypto/lib/rsa');
 const p256 = require('bcrypto/lib/p256');
+const pkcs1 = require('bcrypto/lib/encoding/pkcs1');
 const constants = require('../lib/constants');
 const dnssec = require('../lib/dnssec');
+const keys = require('../lib/internal/keys');
+const {Record} = require('../lib/wire');
+const hsm = require('../lib/hsm');
 
 /*
  * REQUIRES installation of SoftHSMv2:
@@ -18,8 +23,17 @@ const dnssec = require('../lib/dnssec');
  * Great docs: https://www.cryptsoft.com/pkcs11doc/v230/
  */
 
+const softHSMPath = '/usr/local/lib/softhsm/libsofthsm2.so';
+const dnskeyPub = fs.readFileSync(
+  path.join(__dirname, 'data/Khns-claim-test-2.xyz.+008+27259.key'),
+  'utf8'
+);
+const dnskeyPriv = fs.readFileSync(
+  path.join(__dirname, 'data/Khns-claim-test-2.xyz.+008+27259.private'),
+  'utf8'
+);
+
 describe('PKCS#11', function() {
-  const softHSMPath = '/usr/local/lib/softhsm/libsofthsm2.so';
   if (!fs.existsSync(softHSMPath)) {
     console.log('SoftHSMv2 library not found.');
     this.skip();
@@ -285,13 +299,63 @@ describe('PKCS#11', function() {
       // null   -> signed with CKM_RSA_PKCS (opendnssec does it this way)
       // SHA256 -> signed with CKM_SHA256_RSA_PKCS
       assert(rsa.verify(null, em, sig, rsaPublicKey));
+    });
+  });
 
-      pkcs11.C_Logout(session);
+  describe('bns-prove with HSM', function() {
+    const rr = Record.fromString(dnskeyPub);
+    const pubbuf = rr.data.publicKey;
+    // https://datatracker.ietf.org/doc/html/rfc2537#section-2
+    const pub = {
+      elen: pubbuf[0],
+      e: pubbuf.slice(1, pubbuf[0] + 1),
+      n: pubbuf.slice(pubbuf[0] + 1)
+    };
+
+    const [alg, privbuf] = keys.decodePrivate(dnskeyPriv);
+    const priv = pkcs1.RSAPrivateKey.decode(privbuf);
+
+    const keyID = Buffer.from(String(rr.data.keyTag));
+    const keyType = hsm.algToKeyType[alg];
+
+    it('should insert DNSSEC keypair into slot', () => {
+      const res1 = pkcs11.C_CreateObject(
+        session,
+        [
+          { type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PRIVATE_KEY },
+          { type: pkcs11js.CKA_KEY_TYPE, value: keyType },
+          { type: pkcs11js.CKA_MODULUS, value: priv.n.value },
+          { type: pkcs11js.CKA_PUBLIC_EXPONENT, value: priv.e.value },
+          { type: pkcs11js.CKA_PRIVATE_EXPONENT, value: priv.d.value },
+          { type: pkcs11js.CKA_PRIME_1, value: priv.p.value },
+          { type: pkcs11js.CKA_PRIME_2, value: priv.q.value },
+          { type: pkcs11js.CKA_EXPONENT_1, value: priv.dp.value },
+          { type: pkcs11js.CKA_EXPONENT_2, value: priv.dq.value },
+          { type: pkcs11js.CKA_COEFFICIENT, value: priv.qi.value },
+          { type: pkcs11js.CKA_SIGN, value: true },
+          { type: pkcs11js.CKA_ID, value: keyID }
+        ]
+      );
+      assert(res1);
+
+      const res2 = pkcs11.C_CreateObject(
+        session,
+        [
+          { type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PUBLIC_KEY },
+          { type: pkcs11js.CKA_KEY_TYPE, value: keyType },
+          { type: pkcs11js.CKA_PUBLIC_EXPONENT, value: pub.e },
+          { type: pkcs11js.CKA_MODULUS, value: pub.n },
+          { type: pkcs11js.CKA_VERIFY, value: true },
+          { type: pkcs11js.CKA_ID, value: keyID }
+        ]
+      );
+      assert(res2);
     });
   });
 
   describe('Close', function() {
-    it('should close a session', () => {
+    it('should logout and close a session', () => {
+      pkcs11.C_Logout(session);
       pkcs11.C_CloseSession(session);
     });
   });
