@@ -16,6 +16,7 @@ const Resolver = require('../lib/resolver/stub');
 const Ownership = require('../lib/ownership');
 const util = require('../lib/util');
 const wire = require('../lib/wire');
+const hsm = require('../lib/hsm');
 
 const {
   keyFlags,
@@ -36,6 +37,10 @@ let lifespan = 365 * 24 * 60 * 60;
 let dir = '.';
 let name = null;
 let txt = null;
+
+let hsmModule = null;
+let hsmSlot = null;
+let hsmPin = null;
 
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
@@ -80,6 +85,30 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     }
 
+    case '--hsm-module': {
+      if (!next)
+        throw new Error('Invalid module path.');
+
+      hsmModule = next;
+      i += 1;
+      break;
+    }
+
+    case '--hsm-slot': {
+      hsmSlot = util.parseU32(next);
+      i += 1;
+      break;
+    }
+
+    case '--hsm-pin': {
+      if (!next)
+        throw new Error('Invalid pin.');
+
+      hsmPin = next;
+      i += 1;
+      break;
+    }
+
     case '-h':
     case '--help':
     case '-?':
@@ -100,6 +129,13 @@ for (let i = 2; i < process.argv.length; i++) {
       break;
     }
   }
+}
+
+if ((hsmModule || hsmPin || hsmSlot) &&
+    (!hsmModule || !hsmPin || !hsmSlot)) {
+  throw new Error(
+    'HSM mode requires all three options: --hsm-module --hsm-slot --hsm-pin'
+  );
 }
 
 if (!name || name === '.')
@@ -157,7 +193,18 @@ if (!txt)
 
     rd.txt.push(txt);
 
-    const sig = dnssec.sign(key, priv, [rr], lifespan);
+    let sig;
+    if (!hsmModule) {
+      sig = dnssec.sign(key, priv, [rr], lifespan);
+    } else {
+      const user = new hsm.HSMUser({
+        module: hsmModule,
+        slot: hsmSlot,
+        pin: hsmPin
+      });
+      user.open();
+      sig = user.sign(key, [rr]);
+    }
 
     zone.claim.push(rr);
     zone.claim.push(sig);
