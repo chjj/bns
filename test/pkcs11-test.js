@@ -398,9 +398,13 @@ describe('PKCS#11', function() {
       rd.txt.push(txt);
 
       const sig = user.sign(dnskey, [rr]);
+      assert(sig);
 
-      console.log(rr.toString());
-      console.log(sig.toString());
+      assert(dnssec.verify(sig, dnskey, [rr]));
+
+      // Sanity check: malleated signature fails
+      sig.data.signature[0] = 0;
+      assert(!dnssec.verify(sig, dnskey, [rr]));
     });
   });
 });
