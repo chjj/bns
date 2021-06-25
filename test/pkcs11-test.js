@@ -13,7 +13,7 @@ const pkcs1 = require('bcrypto/lib/encoding/pkcs1');
 const constants = require('../lib/constants');
 const dnssec = require('../lib/dnssec');
 const keys = require('../lib/internal/keys');
-const {Record} = require('../lib/wire');
+const {Record, TXTRecord, types, classes} = require('../lib/wire');
 const hsm = require('../lib/hsm');
 
 /*
@@ -50,21 +50,16 @@ describe('PKCS#11', function() {
   const foundKeys = [];
   let rsaPublicKey, dnskeyID;
 
-  before(() => {
-    // Load module
-    pkcs11 = new pkcs11js.PKCS11();
-    pkcs11.load(softHSMPath);
-
-    // Initialize library
-    pkcs11.C_Initialize();
-  });
-
-  after(() => {
-    // Close library
-    pkcs11.C_Finalize();
-  });
-
   describe('Connect to HSM and initialize', function() {
+    it('should initialize library', () => {
+      // Load module
+      pkcs11 = new pkcs11js.PKCS11();
+      pkcs11.load(softHSMPath);
+
+      // Initialize library
+      pkcs11.C_Initialize();
+    });
+
     it('should load module and get info', () => {
       const info = pkcs11.C_GetInfo();
       assert.strictEqual(
@@ -131,11 +126,13 @@ describe('PKCS#11', function() {
           { type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PUBLIC_KEY },
           { type: pkcs11js.CKA_ECDSA_PARAMS, value: Buffer.from(oid, 'hex') },
           { type: pkcs11js.CKA_DERIVE, value: false },
-          { type: pkcs11js.CKA_ID, value: ecKeyId}
+          { type: pkcs11js.CKA_ID, value: ecKeyId},
+          { type: pkcs11js.CKA_TOKEN, value: true }
         ], [
           { type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PRIVATE_KEY },
           { type: pkcs11js.CKA_DERIVE, value: false },
-          { type: pkcs11js.CKA_ID, value: ecKeyId}
+          { type: pkcs11js.CKA_ID, value: ecKeyId},
+          { type: pkcs11js.CKA_TOKEN, value: true }
         ]
       );
       assert(ecKey.publicKey);
@@ -150,12 +147,14 @@ describe('PKCS#11', function() {
           { type: pkcs11js.CKA_PUBLIC_EXPONENT, value: Buffer.from([1, 0, 1]) },
           { type: pkcs11js.CKA_MODULUS_BITS, value: 2048 },
           { type: pkcs11js.CKA_VERIFY, value: true },
-          { type: pkcs11js.CKA_ID, value: rsaKeyId}
+          { type: pkcs11js.CKA_ID, value: rsaKeyId},
+          { type: pkcs11js.CKA_TOKEN, value: true }
         ],
         [
           { type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PRIVATE_KEY },
           { type: pkcs11js.CKA_SIGN, value: true },
-          { type: pkcs11js.CKA_ID, value: rsaKeyId}
+          { type: pkcs11js.CKA_ID, value: rsaKeyId},
+          { type: pkcs11js.CKA_TOKEN, value: true }
         ]
       );
       assert(rsaKey.publicKey);
@@ -303,8 +302,8 @@ describe('PKCS#11', function() {
   });
 
   describe('bns-prove with HSM', function() {
-    const rr = Record.fromString(dnskeyPub);
-    const pubbuf = rr.data.publicKey;
+    const dnskey = Record.fromString(dnskeyPub);
+    const pubbuf = dnskey.data.publicKey;
     // https://datatracker.ietf.org/doc/html/rfc2537#section-2
     const pub = {
       elen: pubbuf[0],
@@ -315,8 +314,10 @@ describe('PKCS#11', function() {
     const [alg, privbuf] = keys.decodePrivate(dnskeyPriv);
     const priv = pkcs1.RSAPrivateKey.decode(privbuf);
 
-    const keyID = Buffer.from(String(rr.data.keyTag));
+    const keyID = Buffer.from(String(dnskey.data.keyTag));
     const keyType = hsm.algToKeyType[alg];
+
+    let user, slotNumber;
 
     it('should insert DNSSEC keypair into slot', () => {
       const res1 = pkcs11.C_CreateObject(
@@ -333,7 +334,8 @@ describe('PKCS#11', function() {
           { type: pkcs11js.CKA_EXPONENT_2, value: priv.dq.value },
           { type: pkcs11js.CKA_COEFFICIENT, value: priv.qi.value },
           { type: pkcs11js.CKA_SIGN, value: true },
-          { type: pkcs11js.CKA_ID, value: keyID }
+          { type: pkcs11js.CKA_ID, value: keyID },
+          { type: pkcs11js.CKA_TOKEN, value: true }
         ]
       );
       assert(res1);
@@ -346,17 +348,59 @@ describe('PKCS#11', function() {
           { type: pkcs11js.CKA_PUBLIC_EXPONENT, value: pub.e },
           { type: pkcs11js.CKA_MODULUS, value: pub.n },
           { type: pkcs11js.CKA_VERIFY, value: true },
-          { type: pkcs11js.CKA_ID, value: keyID }
+          { type: pkcs11js.CKA_ID, value: keyID },
+          { type: pkcs11js.CKA_TOKEN, value: true }
         ]
       );
       assert(res2);
     });
-  });
 
-  describe('Close', function() {
-    it('should logout and close a session', () => {
+    it('should logout and close current session', () => {
       pkcs11.C_Logout(session);
       pkcs11.C_CloseSession(session);
+      pkcs11.C_Finalize();
+    });
+
+    it('should get the slot number', () => {
+      // SoftHSM does something funny when you create a new slot,
+      // the ID remains 0x00 until you completely close
+      // the library. When you restart, that slot's real
+      // number is available. This simulates the operator
+      // getting a list of slots from the HSM, or creating
+      // a new slot for us and getting the slot number.
+      pkcs11.C_Initialize();
+      const slots = pkcs11.C_GetSlotList();
+      slotNumber = slots[0].readUInt32LE();
+      pkcs11.C_Finalize();
+    });
+
+    it('should open HSM session', () => {
+      user = new hsm.HSMUser({
+        module: softHSMPath,
+        slot: slotNumber,
+        pin: USER_PIN
+      });
+
+      user.open();
+    });
+
+    it('should sign a TXT record with corresponding DNSKEY', () => {
+      const txt =
+        'hns-regtest:aakkrwicqqs2s5aoxavbcaariycxuze3i5fp2aden2r62z' +
+        'x3tjtl3ry56orjwonppjdru3p2uirlbyglvvtcepoqbhdacaaaabdz52s5';
+      const rr = new Record();
+      const rd = new TXTRecord();
+      rr.name = 'hns-claim-test-2.xyz.';
+      rr.type = types.TXT;
+      rr.class = classes.IN;
+      rr.ttl = 3600;
+      rr.data = rd;
+      rd.txt.push(txt);
+
+      const sig = user.sign(dnskey, [rr]);
+
+      console.log(rr.toString());
+      console.log(sig.toString());
     });
   });
 });
