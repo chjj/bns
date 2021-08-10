@@ -177,11 +177,6 @@ if (!txt)
     if (!ctx.verifyKey(key, hardened))
       continue;
 
-    const priv = await dnssec.readPrivateAsync(dir, key);
-
-    if (!priv)
-      continue;
-
     const rr = new Record();
     const rd = new TXTRecord();
 
@@ -195,8 +190,15 @@ if (!txt)
 
     let sig;
     if (!hsmModule) {
+      // Signing with local key
+      const priv = await dnssec.readPrivateAsync(dir, key);
+
+      if (!priv)
+        continue;
+
       sig = dnssec.sign(key, priv, [rr], lifespan);
     } else {
+      // Signing with HSM
       const user = new hsm.HSMUser({
         module: hsmModule,
         slot: hsmSlot,
