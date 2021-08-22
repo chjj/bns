@@ -188,6 +188,8 @@ if (!txt)
 
     rd.txt.push(txt);
 
+    console.log('Searching for key: ', key.data.keyTag());
+
     let sig;
     if (!hsmModule) {
       // Signing with local key
@@ -198,15 +200,22 @@ if (!txt)
 
       sig = dnssec.sign(key, priv, [rr], lifespan);
     } else {
-      // Signing with HSM
-      const user = new hsm.HSMUser({
-        module: hsmModule,
-        slot: hsmSlot,
-        pin: hsmPin
-      });
-      user.open();
-      sig = user.sign(key, [rr]);
-      user.close();
+      let user;
+      try {
+        // Signing with HSM
+        user = new hsm.HSMUser({
+          module: hsmModule,
+          slot: hsmSlot,
+          pin: hsmPin
+        });
+        user.open();
+        sig = user.sign(key, [rr]);
+      } catch (e) {
+        console.log(e.message);
+        continue;
+      } finally {
+        user.close();
+      }
     }
 
     zone.claim.push(rr);
