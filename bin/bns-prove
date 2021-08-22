@@ -206,6 +206,7 @@ if (!txt)
       });
       user.open();
       sig = user.sign(key, [rr]);
+      user.close();
     }
 
     zone.claim.push(rr);

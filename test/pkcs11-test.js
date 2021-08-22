@@ -24,14 +24,6 @@ const hsm = require('../lib/hsm');
  */
 
 const softHSMPath = '/usr/local/lib/softhsm/libsofthsm2.so';
-const dnskeyPub = fs.readFileSync(
-  path.join(__dirname, 'data/Khns-claim-test-2.xyz.+008+27259.key'),
-  'utf8'
-);
-const dnskeyPriv = fs.readFileSync(
-  path.join(__dirname, 'data/Khns-claim-test-2.xyz.+008+27259.private'),
-  'utf8'
-);
 
 describe('PKCS#11', function() {
   if (!fs.existsSync(softHSMPath)) {
@@ -302,24 +294,35 @@ describe('PKCS#11', function() {
   });
 
   describe('bns-prove with HSM', function() {
-    const dnskey = Record.fromString(dnskeyPub);
-    const pubbuf = dnskey.data.publicKey;
-    // https://datatracker.ietf.org/doc/html/rfc2537#section-2
-    const pub = {
-      elen: pubbuf[0],
-      e: pubbuf.slice(1, pubbuf[0] + 1),
-      n: pubbuf.slice(pubbuf[0] + 1)
-    };
-
-    const [alg, privbuf] = keys.decodePrivate(dnskeyPriv);
-    const priv = pkcs1.RSAPrivateKey.decode(privbuf);
-
-    const keyID = Buffer.from(String(dnskey.data.keyTag));
-    const keyType = hsm.algToKeyType[alg];
-
+    let dnskeyRSA, dnskeyECDSA;
     let user, slotNumber;
 
-    it('should insert DNSSEC keypair into slot', () => {
+    it('should insert RSA DNSSEC keypair into slot', () => {
+      const dnskeyPub = fs.readFileSync(
+        path.join(__dirname, 'data/Khns-claim-test-2.xyz.+008+27259.key'),
+        'utf8'
+      );
+      const dnskeyPriv = fs.readFileSync(
+        path.join(__dirname, 'data/Khns-claim-test-2.xyz.+008+27259.private'),
+        'utf8'
+      );
+
+      const dnskey = Record.fromString(dnskeyPub);
+      dnskeyRSA = dnskey;
+      const pubbuf = dnskey.data.publicKey;
+      // https://datatracker.ietf.org/doc/html/rfc2537#section-2
+      const pub = {
+        elen: pubbuf[0],
+        e: pubbuf.slice(1, pubbuf[0] + 1),
+        n: pubbuf.slice(pubbuf[0] + 1)
+      };
+
+      const [alg, privbuf] = keys.decodePrivate(dnskeyPriv);
+      const priv = pkcs1.RSAPrivateKey.decode(privbuf);
+
+      const keyID = Buffer.from(String(dnskey.data.keyTag()));
+      const keyType = hsm.algToKeyType[alg];
+
       const res1 = pkcs11.C_CreateObject(
         session,
         [
@@ -347,6 +350,60 @@ describe('PKCS#11', function() {
           { type: pkcs11js.CKA_KEY_TYPE, value: keyType },
           { type: pkcs11js.CKA_PUBLIC_EXPONENT, value: pub.e },
           { type: pkcs11js.CKA_MODULUS, value: pub.n },
+          { type: pkcs11js.CKA_VERIFY, value: true },
+          { type: pkcs11js.CKA_ID, value: keyID },
+          { type: pkcs11js.CKA_TOKEN, value: true }
+        ]
+      );
+      assert(res2);
+    });
+
+    it('should insert ECDSA DNSSEC keypair into slot', () => {
+      const dnskeyPub = fs.readFileSync(
+        path.join(__dirname, 'data/Khns-claim-test-2.xyz.+013+32174.key'),
+        'utf8'
+      );
+      const dnskeyPriv = fs.readFileSync(
+        path.join(__dirname, 'data/Khns-claim-test-2.xyz.+013+32174.private'),
+        'utf8'
+      );
+
+      const dnskey = Record.fromString(dnskeyPub);
+      dnskeyECDSA = dnskey;
+      const pubbuf = dnskey.data.publicKey;
+      const pub = Buffer.alloc(67);
+      pub[0] = 0x04;
+      pub[1] = 0x41;
+      pub[2] = 0x04;
+      pubbuf.copy(pub, 3);
+
+      const [alg, priv] = keys.decodePrivate(dnskeyPriv);
+
+      const keyID = Buffer.from(String(dnskey.data.keyTag()));
+      const keyType = hsm.algToKeyType[alg];
+
+      const oid = '06082A8648CE3D030107'; // ECDSA P-256
+      const res1 = pkcs11.C_CreateObject(
+        session,
+        [
+          { type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PRIVATE_KEY },
+          { type: pkcs11js.CKA_KEY_TYPE, value: keyType },
+          { type: pkcs11js.CKA_EC_PARAMS, value: Buffer.from(oid, 'hex') },
+          { type: pkcs11js.CKA_VALUE, value: priv },
+          { type: pkcs11js.CKA_SIGN, value: true },
+          { type: pkcs11js.CKA_ID, value: keyID },
+          { type: pkcs11js.CKA_TOKEN, value: true }
+        ]
+      );
+      assert(res1);
+
+      const res2 = pkcs11.C_CreateObject(
+        session,
+        [
+          { type: pkcs11js.CKA_CLASS, value: pkcs11js.CKO_PUBLIC_KEY },
+          { type: pkcs11js.CKA_KEY_TYPE, value: keyType },
+          { type: pkcs11js.CKA_EC_PARAMS, value: Buffer.from(oid, 'hex') },
+          { type: pkcs11js.CKA_EC_POINT, value: pub },
           { type: pkcs11js.CKA_VERIFY, value: true },
           { type: pkcs11js.CKA_ID, value: keyID },
           { type: pkcs11js.CKA_TOKEN, value: true }
@@ -384,7 +441,7 @@ describe('PKCS#11', function() {
       user.open();
     });
 
-    it('should sign a TXT record with corresponding DNSKEY', () => {
+    it('should sign a TXT record with corresponding DNSKEYs', () => {
       const txt =
         'hns-regtest:aakkrwicqqs2s5aoxavbcaariycxuze3i5fp2aden2r62z' +
         'x3tjtl3ry56orjwonppjdru3p2uirlbyglvvtcepoqbhdacaaaabdz52s5';
@@ -397,14 +454,31 @@ describe('PKCS#11', function() {
       rr.data = rd;
       rd.txt.push(txt);
 
-      const sig = user.sign(dnskey, [rr]);
-      assert(sig);
+      {
+        const sig = user.sign(dnskeyRSA, [rr]);
+        assert(sig);
 
-      assert(dnssec.verify(sig, dnskey, [rr]));
+        assert(dnssec.verify(sig, dnskeyRSA, [rr]));
 
-      // Sanity check: malleated signature fails
-      sig.data.signature[0] = 0;
-      assert(!dnssec.verify(sig, dnskey, [rr]));
+        // Sanity check: malleated signature fails
+        sig.data.signature[0] = 0;
+        assert(!dnssec.verify(sig, dnskeyRSA, [rr]));
+      }
+
+      {
+        const sig = user.sign(dnskeyECDSA, [rr]);
+        assert(sig);
+
+        assert(dnssec.verify(sig, dnskeyECDSA, [rr]));
+
+        // Sanity check: malleated signature fails
+        sig.data.signature[0] = 0;
+        assert(!dnssec.verify(sig, dnskeyECDSA, [rr]));
+      }
+    });
+
+    it('should close HSM session', () => {
+      user.close();
     });
   });
 });
