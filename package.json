@@ -32,6 +32,7 @@
   "scripts": {
     "lint": "eslint bin/* lib/ test/ || exit 0",
     "test": "bmocha --reporter spec test/*-test.js",
+    "test-browser": "bmocha -H --reporter spec test/*-test.js",
     "test-file": "bmocha --reporter spec"
   },
   "dependencies": {
