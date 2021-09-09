@@ -4,7 +4,6 @@
 'use strict';
 
 const assert = require('bsert');
-const dns = require('../lib/dns');
 const tlsa = require('../lib/tlsa');
 const wire = require('../lib/wire');
 const {usages, selectors, matchingTypes} = tlsa;
@@ -209,61 +208,5 @@ describe('TLSA', function() {
     cert[30] ^= 1;
 
     assert(!tlsa.verify(rr2, cert));
-  });
-
-  if (process.browser)
-    return;
-
-  it('should verify spki+sha256 cert (www.ietf.org)', async () => {
-    const cert = fromBase64(`
-      MIIFUTCCBDmgAwIBAgIIITAshaEP0OswDQYJKoZIhvcNAQELBQAwgcYxCzAJBgNV
-      BAYTAlVTMRAwDgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMSUw
-      IwYDVQQKExxTdGFyZmllbGQgVGVjaG5vbG9naWVzLCBJbmMuMTMwMQYDVQQLEypo
-      dHRwOi8vY2VydHMuc3RhcmZpZWxkdGVjaC5jb20vcmVwb3NpdG9yeS8xNDAyBgNV
-      BAMTK1N0YXJmaWVsZCBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIw
-      HhcNMTcwNjEyMTAxMjAwWhcNMTgwODExMjMxMjUwWjA4MSEwHwYDVQQLExhEb21h
-      aW4gQ29udHJvbCBWYWxpZGF0ZWQxEzARBgNVBAMMCiouaWV0Zi5vcmcwggEiMA0G
-      CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2eMubW2zWELh8023dSdAP3LvdsNeC
-      KhPJZhIjdxr8o1+5PJ2MVMRgCaqe4asE5R+BuYfc9FDQCamqWOBZNvd3crwfhQW8
-      NZBM9JLbUgyObyip3X2cTkbFaKsa7SgNHOFYsd7VFntmuiEI+D/U5yzLjtBm4raV
-      oUHSsSatFYGYRhsOXf/DF/ld+oiqk7KckHTa2FetMJxMztHPUWoIW39lVkHmEpjZ
-      L4JN0T04hUqWvhYcx+69Rh46PToaTAsUkc2/a1T62i8jeZhHFS5jhS6mRLcwL461
-      7LtcqbU/4g2NZah6CbqIIC3dW6ylXP7qlTbGCXeesBUxAcHh9F5A8fSlAgMBAAGj
-      ggHOMIIByjAMBgNVHRMBAf8EAjAAMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEF
-      BQcDAjAOBgNVHQ8BAf8EBAMCBaAwPAYDVR0fBDUwMzAxoC+gLYYraHR0cDovL2Ny
-      bC5zdGFyZmllbGR0ZWNoLmNvbS9zZmlnMnMxLTU2LmNybDBjBgNVHSAEXDBaME4G
-      C2CGSAGG/W4BBxcBMD8wPQYIKwYBBQUHAgEWMWh0dHA6Ly9jZXJ0aWZpY2F0ZXMu
-      c3RhcmZpZWxkdGVjaC5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQIBMIGGBggrBgEF
-      BQcBAQR6MHgwKgYIKwYBBQUHMAGGHmh0dHA6Ly9vY3NwLnN0YXJmaWVsZHRlY2gu
-      Y29tLzBKBggrBgEFBQcwAoY+aHR0cDovL2NlcnRpZmljYXRlcy5zdGFyZmllbGR0
-      ZWNoLmNvbS9yZXBvc2l0b3J5L3NmaWcyLmNydC5kZXIwHwYDVR0jBBgwFoAUJUWB
-      aFAmOD07LSy+zWrZtj2zZmMwHwYDVR0RBBgwFoIKKi5pZXRmLm9yZ4IIaWV0Zi5v
-      cmcwHQYDVR0OBBYEFAb+C6vY5nRu/MRzAoX3qUh+0TRPMA0GCSqGSIb3DQEBCwUA
-      A4IBAQDkjdd7Mz2F83bfBNjAS0uN0mGIn2Z67dcWP+klzp7JzGb+qdbPZsI0aHKZ
-      UEh0Pl71hcn8LlhYl+n7GJUGhW7CaOVqhzHkxfyfIls6BJ+pL6mIx5be8xqSV04b
-      zyPBZcPnuFdi/dXAgjE9iSFHfNH8gthiXgzgiIPIjQp2xuJDeQHWT5ZQ5gUxF8qP
-      ecO5L6IwMzZFRuE6SYzFynsOMOGjsPYJkYLm3JYwUulDz7OtRABwN5wegc5tTgq5
-      9HaFOULLCdMakLIRmMC0PzSI+m3+cYoZ6ue/8q9my7HgekcVMYQ5lRKncrs3GMxo
-      WNyYOpbGqBfooA8nwwE20fpacX2i
-    `);
-
-    // Hack for testing.
-    dns._allowInsecure = true;
-
-    const rrs = await dns.resolveTLSA('www.ietf.org', 'tcp', 443);
-
-    assert(Array.isArray(rrs));
-    assert(rrs.length >= 1);
-
-    let valid = false;
-
-    for (const rr of rrs) {
-      if (dns.verifyTLSA(rr, cert)) {
-        valid = true;
-        break;
-      }
-    }
-
-    assert(valid);
   });
 });
