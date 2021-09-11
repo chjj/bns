@@ -53,8 +53,28 @@ const noNodataNames = [
 if (process.browser)
   return;
 
+function checkUBversion(string) {
+  const digits = string.split('.');
+
+  // Require support for ED448, at least version 1.8.x
+  if (parseInt(digits[0]) > 1)
+    return true;
+
+  if (parseInt(digits[0]) < 1)
+    return false;
+
+  if (parseInt(digits[1]) < 8)
+    return false;
+
+  return true;
+}
+
 describe('Recursive', function() {
   this.timeout(20000);
+
+  it(`should return the version of libunbound: ${udns.version}`, () => {
+    ;
+  });
 
   for (const Resolver of [RecursiveResolver, UnboundResolver]) {
     it('should do a recursive resolution', async () => {
@@ -87,7 +107,7 @@ describe('Recursive', function() {
     describe(`${dns === rdns ? 'JavaScript' : 'Unbound'}`, function () {
       for (const name of dnssecNames) {
         if (name === 'ed25519.nl' || name === 'ed448.nl') {
-          if (dns === udns && udns.version < '1.8.1')
+          if (dns === udns && !checkUBversion(udns.version))
             continue;
         }
 
