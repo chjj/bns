@@ -15,14 +15,27 @@ jobs:
         node_version: [10.x, 12.x, 14.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Unbound
+        uses: actions/checkout@v2
+        with:
+          repository: nlnetlabs/unbound
+          path: ub
+
+      - name: Install Unbound
+        working-directory: ub
+        run: ./configure &&
+             make &&
+             sudo make install &&
+             sudo ldconfig
+
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Setup
         uses: actions/setup-node@v1
 
       - name: Install
-        run: sudo apt-get install -y libunbound-dev |
-             npm install
+        run: npm install
 
       - name: Test
         run: npm run test
