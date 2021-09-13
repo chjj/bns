@@ -44,7 +44,8 @@
     "bsert": "~0.0.10",
     "btcp": "~0.1.5",
     "budp": "~0.1.6",
-    "bufio": "~1.0.7"
+    "bufio": "~1.0.7",
+    "pkcs11js": "^1.2.5"
   },
   "optionalDependencies": {
     "unbound": "~0.4.3"

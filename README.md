@@ -3,6 +3,10 @@
 DNS library, server, and validating recursive resolver for node.js, in pure
 javascript.
 
+To use this package for DNSSEC-ownership proofs (required for reserved name
+claims on the [Handshake blockchain network](https://handshake.org)) see the
+[bns-prove guide](PROVE.md).
+
 ## Server Usage
 
 ### Base Server
