@@ -53,8 +53,28 @@ const noNodataNames = [
 if (process.browser)
   return;
 
+function checkUBversion(string) {
+  const digits = string.split('.');
+
+  // Require support for ED448, at least version 1.8.x
+  if (parseInt(digits[0]) > 1)
+    return true;
+
+  if (parseInt(digits[0]) < 1)
+    return false;
+
+  if (parseInt(digits[1]) < 8)
+    return false;
+
+  return true;
+}
+
 describe('Recursive', function() {
   this.timeout(20000);
+
+  it(`should return the version of libunbound: ${udns.version}`, () => {
+    ;
+  });
 
   for (const Resolver of [RecursiveResolver, UnboundResolver]) {
     it('should do a recursive resolution', async () => {
@@ -84,63 +104,65 @@ describe('Recursive', function() {
   }
 
   for (const dns of [rdns, udns]) {
-    for (const name of dnssecNames) {
-      if (name === 'ed25519.nl' || name === 'ed448.nl') {
-        if (dns === udns && udns.version < '1.8.1')
-          continue;
+    describe(`${dns === rdns ? 'JavaScript' : 'Unbound'}`, function () {
+      for (const name of dnssecNames) {
+        if (name === 'ed25519.nl' || name === 'ed448.nl') {
+          if (dns === udns && !checkUBversion(udns.version))
+            continue;
+        }
+
+        it(`should validate trust chain for ${name}`, async () => {
+          const res = await dns.resolveRaw(name, types.A);
+          assert.strictEqual(res.code, codes.NOERROR);
+          assert(res.answer.length > 0);
+          assert(res.ad);
+        });
       }
 
-      it(`should validate trust chain for ${name}`, async () => {
-        const res = await dns.resolveRaw(name, types.A);
-        assert.strictEqual(res.code, codes.NOERROR);
-        assert(res.answer.length > 0);
-        assert(res.ad);
-      });
-    }
+      for (const name of nxNames) {
+        it(`should validate NX proof for ${name}`, async () => {
+          const res = await dns.resolveRaw(name, types.A);
+          assert.strictEqual(res.code, codes.NXDOMAIN);
+          assert(res.answer.length === 0);
+          assert(res.ad);
+        });
+      }
 
-    for (const name of nxNames) {
-      it(`should validate NX proof for ${name}`, async () => {
-        const res = await dns.resolveRaw(name, types.A);
-        assert.strictEqual(res.code, codes.NXDOMAIN);
-        assert(res.answer.length === 0);
-        assert(res.ad);
-      });
-    }
+      for (const name of nodataNames) {
+        it(`should validate NODATA proof for ${name}`, async () => {
+          const res = await dns.resolveRaw(name, types.WKS);
+          assert.strictEqual(res.code, codes.NOERROR);
+          assert(res.answer.length === 0);
+          assert(res.ad);
+        });
+      }
 
-    for (const name of nodataNames) {
-      it(`should validate NODATA proof for ${name}`, async () => {
-        const res = await dns.resolveRaw(name, types.WKS);
-        assert.strictEqual(res.code, codes.NOERROR);
-        assert(res.answer.length === 0);
-        assert(res.ad);
-      });
-    }
+      for (const name of noDnssecNames) {
+        it(`should fail to validate trust chain for ${name}`, async () => {
+          const res = await dns.resolveRaw(name, types.A);
+          assert.strictEqual(res.code, codes.NOERROR);
+          assert(res.answer.length > 0);
+          assert(!res.ad);
+        });
+      }
 
-    for (const name of noDnssecNames) {
-      it(`should fail to validate trust chain for ${name}`, async () => {
-        const res = await dns.resolveRaw(name, types.A);
-        assert.strictEqual(res.code, codes.NOERROR);
-        assert(res.answer.length > 0);
-        assert(!res.ad);
-      });
-    }
+      for (const name of noNxNames) {
+        it(`should fail to validate NX proof for ${name}`, async () => {
+          const res = await dns.resolveRaw(name, types.A);
+          assert.strictEqual(res.code, codes.NXDOMAIN);
+          assert(res.answer.length === 0);
+          assert(!res.ad);
+        });
+      }
 
-    for (const name of noNxNames) {
-      it(`should fail to validate NX proof for ${name}`, async () => {
-        const res = await dns.resolveRaw(name, types.A);
-        assert.strictEqual(res.code, codes.NXDOMAIN);
-        assert(res.answer.length === 0);
-        assert(!res.ad);
-      });
-    }
-
-    for (const name of noNodataNames) {
-      it(`should fail to validate NODATA proof for ${name}`, async () => {
-        const res = await dns.resolveRaw(name, types.WKS);
-        assert.strictEqual(res.code, codes.NOERROR);
-        assert(res.answer.length === 0);
-        assert(!res.ad);
-      });
-    }
+      for (const name of noNodataNames) {
+        it(`should fail to validate NODATA proof for ${name}`, async () => {
+          const res = await dns.resolveRaw(name, types.WKS);
+          assert.strictEqual(res.code, codes.NOERROR);
+          assert(res.answer.length === 0);
+          assert(!res.ad);
+        });
+      }
+    });
   }
 });

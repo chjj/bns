@@ -3,6 +3,7 @@
 
 'use strict';
 
+const net = require('net');
 const assert = require('bsert');
 const Path = require('path');
 const fs = require('bfile');
@@ -40,6 +41,25 @@ describe('Server', function() {
   let recServer = null;
   let authQueries = 0;
   let recQueries = 0;
+  let inet6 = true;
+
+  before(() => {
+    // Test platform for ipv6 support.
+    // A.ROOT-SERVERS.NET.
+    const testIPv6 = net.connect({host: '2001:503:ba3e::2:30', port: 53})
+      .on('error', (e) => {
+        assert(e.code === 'EHOSTUNREACH' || e.code === 'ENETUNREACH');
+        inet6 = false;
+        testIPv6.destroy();
+      });
+
+    // IPv4 should always be supported.
+    // A.ROOT-SERVERS.NET.
+    const testIPv4 = net.connect({host: '198.41.0.4', port: 53})
+      .on('connect', () => {
+        testIPv4.destroy();
+      });
+  });
 
   it('should listen on port 5300', async () => {
     server = new Server({
@@ -293,7 +313,7 @@ describe('Server', function() {
   it('should open recursive server', async () => {
     recServer = new RecursiveServer({
       tcp: true,
-      inet6: true,
+      inet6,
       edns: true,
       dnssec: true
     });
@@ -390,7 +410,7 @@ describe('Server', function() {
   it('should do a recursive resolution', async () => {
     const res = new RecursiveResolver({
       tcp: true,
-      inet6: true,
+      inet6,
       edns: true,
       dnssec: true
     });
@@ -415,7 +435,7 @@ describe('Server', function() {
   it('should do a recursive resolution (unbound)', async () => {
     const res = new UnboundResolver({
       tcp: true,
-      inet6: true,
+      inet6,
       edns: true,
       dnssec: true
     });
@@ -440,7 +460,7 @@ describe('Server', function() {
   it('should do a root resolution', async () => {
     const res = new RootResolver({
       tcp: true,
-      inet6: true,
+      inet6,
       edns: true,
       dnssec: true
     });
