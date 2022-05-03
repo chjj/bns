@@ -1,0 +1,53 @@
+; File written on Tue May  3 11:02:51 2022
+; dnssec_signzone version 9.18.0
+.			60	IN SOA	. . (
+					2020010100 ; serial
+					1000       ; refresh (16 minutes 40 seconds)
+					1000       ; retry (16 minutes 40 seconds)
+					1000       ; expire (16 minutes 40 seconds)
+					1000       ; minimum (16 minutes 40 seconds)
+					)
+			60	RRSIG	SOA 15 0 60 (
+					20220602140251 20220503140251 64078 .
+					qlXo+kwwXdoYKcpresFqsJxbvDNcn9Rv9VA6
+					2G2wc3dFdisZ4+2R+f6MbsU+d5GYO6ZDtEI0
+					Kh8ZIj/IRR0SDQ== )
+			60	NSEC	weakkeytld. SOA RRSIG NSEC DNSKEY
+			60	RRSIG	NSEC 15 0 60 (
+					20220602140251 20220503140251 64078 .
+					PR4APSMUpxtp3SF+H7h6EpxoS0PIuLPfRyMW
+					AGEheO4KN1c2SepgY+NMUiIbBEXb2dQ9ip/k
+					gC2GKgy0RLUYCQ== )
+			60	DNSKEY	256 3 15 (
+					dicBi2zCKiwhkLn51roAZW77uv5WYGlRU39j
+					lpsZ+Rk=
+					) ; ZSK; alg = ED25519 ; key id = 64078
+			60	DNSKEY	257 3 15 (
+					6GIGM0kYoQgXi3eWvx7AaPnAl/jXgino35a7
+					TZVRR5s=
+					) ; KSK; alg = ED25519 ; key id = 63077
+			60	RRSIG	DNSKEY 15 0 60 (
+					20220602140251 20220503140251 63077 .
+					kBZulyt4zA5Yg1wjVs5meC0RV26i5S05n8pl
+					ZrzdJR0W6TEldFihBuK6s2EHrGFff6JDk2HB
+					uOS+u4R9YIWhBQ== )
+			60	RRSIG	DNSKEY 15 0 60 (
+					20220602140251 20220503140251 64078 .
+					qTkOK0rEBCGMUfOBuj+4Wwc31pjvVXDu2vBg
+					Yq55FsdEZbDYAcaYXL1GoTYiY65zoHbAsDuf
+					qnWQlVKI+2QSCQ== )
+weakkeytld.		60	IN NS	weakkeytld.
+			60	DS	8014 5 2 (
+					D33EA661650431DA314CA3609D7E04023634
+					952E0F48D07548A0CFDEDE6F24B9 )
+			60	RRSIG	DS 15 1 60 (
+					20220602140251 20220503140251 64078 .
+					DknzxYoVFCAowxWXUG0jH7p1cyiDcXjguz2H
+					3qdO7ZEq9MhLk6+6b6wp0J6RZLKwxyUIAe5g
+					kPI6xu0dEdBuDg== )
+			60	NSEC	. NS DS RRSIG NSEC
+			60	RRSIG	NSEC 15 1 60 (
+					20220602140251 20220503140251 64078 .
+					W/jtM+Kisvg1QcxokNLYEurHp33eV3eMp+12
+					ZbvQ12Up1PvMKUzIazAoP5h5l3Qj1byydf6r
+					YBixKHFVxJJJBg== )

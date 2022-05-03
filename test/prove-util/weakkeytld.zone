@@ -1,0 +1,9 @@
+$ORIGIN weakkeytld.
+$TTL 1m
+
+weakkeytld. IN SOA weakkeytld. weakkeytld. 2020010100 1000 1000 1000 1000
+
+weakkeytld. IN TXT "TXT signed with SHA1 in zone file"
+
+$INCLUDE Kweakkeytld.+005+08014.key
+$INCLUDE Kweakkeytld.+005+11037.key
