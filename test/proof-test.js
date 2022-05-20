@@ -46,7 +46,7 @@ const provableNames = [
   ['nlnetlabs.nl.', true, true],
   ['nlnet.nl.', true, true],
   ['verisigninc.com.', true, true],
-  ['iis.se.', false, true],
+  ['iis.se.', false, false],
   ['kirei.se.', true, false],
   ['opendnssec.org.', false, true],
   ['ietf.org.', false, true],

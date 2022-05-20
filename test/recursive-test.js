@@ -42,6 +42,11 @@ const noDnssecNames = [
   'google.com'
 ];
 
+const badDnssecNames = [
+  'www.dnssec-failed.org',
+  'rhybar.cz'
+];
+
 const noNxNames = [
   'nxdomain.google.com'
 ];
@@ -159,6 +164,15 @@ describe('Recursive', function() {
         it(`should fail to validate NODATA proof for ${name}`, async () => {
           const res = await dns.resolveRaw(name, types.WKS);
           assert.strictEqual(res.code, codes.NOERROR);
+          assert(res.answer.length === 0);
+          assert(!res.ad);
+        });
+      }
+
+      for (const name of badDnssecNames) {
+        it(`should fail to validate bad signature for ${name}`, async () => {
+          const res = await dns.resolveRaw(name, types.A);
+          assert.strictEqual(res.code, codes.SERVFAIL);
           assert(res.answer.length === 0);
           assert(!res.ad);
         });
