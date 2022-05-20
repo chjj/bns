@@ -47,7 +47,7 @@ describe('Stub', function() {
     // await test('resolveAny', 'google.com');
     await test('resolve4', 'icanhazip.com');
     await test('resolve6', 'icanhazip.com');
-    await test('resolveCname', 'mail.google.com');
+    await test('resolveCname', 'onedrive.live.com');
     await test('resolveMx', 'google.com');
     await test('resolveNaptr', 'apple.com');
     // await test('resolvePtr', '46.0.217.172.in-addr.arpa.');
