@@ -25,7 +25,7 @@ describe('Zone', function() {
   it('should serve root zone', () => {
     const zone = Zone.fromFile('.', ROOT_ZONE);
 
-    assert.strictEqual(zone.names.size, 5717);
+    assert.strictEqual(zone.names.size, 7044);
 
     {
       const msg = zone.resolve('com.', types.NS);

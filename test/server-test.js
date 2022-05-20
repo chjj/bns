@@ -476,7 +476,7 @@ describe('Server', function() {
 
     await res.open();
 
-    util.fakeTime('2018-08-05:00:00.000Z');
+    util.fakeTime('2022-05-21:00:00.000Z');
 
     const msg = await res.lookup('com.');
     assert(msg.code === codes.NOERROR);
@@ -496,7 +496,7 @@ describe('Server', function() {
   });
 
   it('should have total requests', () => {
-    assert.strictEqual(authQueries, 16);
+    assert.strictEqual(authQueries, 11);
     assert.strictEqual(recQueries, 1);
   });
 
