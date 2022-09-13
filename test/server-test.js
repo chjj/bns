@@ -11,13 +11,14 @@ const util = require('../lib/util');
 const wire = require('../lib/wire');
 const Server = require('../lib/server/dns');
 const api = require('../lib/dns');
+const constants = require('../lib/constants');
 const StubResolver = require('../lib/resolver/stub');
 const RecursiveResolver = require('../lib/resolver/recursive');
 const UnboundResolver = require('../lib/resolver/unbound');
 const RootResolver = require('../lib/resolver/root');
 const AuthServer = require('../lib/server/auth');
 const RecursiveServer = require('../lib/server/recursive');
-const {types, codes, Record, KSK_2010} = wire;
+const {types, codes, Record, KSK_2010, Message, options} = wire;
 
 const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
 const COM_RESPONSE = Path.resolve(__dirname, 'data', 'com-response.zone');
@@ -466,6 +467,119 @@ describe('Server', function() {
         assert(msg.answer[0].type === types.A);
 
         await res.close();
+      });
+
+      describe('EDNS', function () {
+        const stub = new StubResolver({
+          rd: true,
+          cd: false,
+          edns: true,
+          dnssec: true,
+          hosts: [
+            ['localhost.', '127.0.0.1'],
+            ['localhost.', '::1']
+          ],
+          servers: [`127.0.0.1:${ports.a}`]
+        });
+
+        // StubResolver automatically retries queries without EDNS
+        // if it gets an error. We actually want those errors during
+        // testing, so this function always returns whatever we get first.
+        async function getFirstResponse(name, type) {
+          return new Promise(async (resolve) => {
+            let msg;
+            stub.socket.once('message', (data) => {
+              msg = Message.decode(data);
+            });
+
+            // Wait until the request is completely fulfilled
+            await stub.lookup(name, type);
+            resolve(msg);
+          });
+        }
+
+        before(async () => {
+          await stub.open();
+        });
+
+        after(async () => {
+          await stub.close();
+        });
+
+        const randomCookie = util.cookie;
+        afterEach(() => {
+          util.cookie = randomCookie;
+        });
+
+        it('should query without edns', async () => {
+          stub.edns = false;
+          const res = await getFirstResponse('.', types.SOA);
+
+          assert(!res.edns.enabled);
+          assert.strictEqual(res.edns.size, constants.MAX_UDP_SIZE);
+        });
+
+        it('should query with edns', async () => {
+          stub.edns = true;
+          const res = await getFirstResponse('.', types.SOA);
+
+          assert(res.edns.enabled);
+          assert.strictEqual(res.edns.size, constants.MAX_EDNS_SIZE);
+        });
+
+        it('should throw if edns is malformed (client cookie)', async () => {
+          stub.edns = true;
+          util.cookie = () => {
+            return Buffer.from([1, 2, 3, 4, 5, 6, 7]); // too short clientCookie
+          };
+          const res = await getFirstResponse('applepie.', types.SOA);
+
+          assert.strictEqual(res.code, codes.FORMERR);
+          assert(res.question.length);
+          assert.deepStrictEqual(
+            res.question[0].getJSON(),
+            {
+              name: 'applepie.',
+              class: 'IN',
+              type: 'SOA'
+            }
+          );
+        });
+
+        it('should throw if edns is malformed (server cookie)', async () => {
+          stub.edns = true;
+          util.cookie = () => {
+            return Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 9]); // too short serverCookie
+          };
+          const res = await getFirstResponse('cheddarcheese.', types.SOA);
+
+          assert.strictEqual(res.code, codes.FORMERR);
+          assert(res.question.length);
+          assert.deepStrictEqual(
+            res.question[0].getJSON(),
+            {
+              name: 'cheddarcheese.',
+              class: 'IN',
+              type: 'SOA'
+            }
+          );
+        });
+
+        it('should echo client cookie', async () => {
+          stub.edns = true;
+          util.cookie = () => {
+            return Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+          };
+          const res = await getFirstResponse('sideoffries.', types.SOA);
+
+          const opt = res.edns.options[0];
+          assert.strictEqual(opt.code, options.COOKIE);
+          assert.strictEqual(
+            opt.option.clientCookie.toString('hex'),
+            '0102030405060708'
+          );
+          assert.strictEqual(opt.option.serverCookie.length, 8);
+        });
       });
     });
 
