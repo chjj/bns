@@ -138,5 +138,21 @@ describe('Wire', function() {
         deepStrictEqual(Message.fromJSON(msg.toJSON()), msg);
       }
     });
+
+    it('should set EDNS extended error', () => {
+      const msg = new Message();
+      msg.edns.setEDE(7, 'Signature Expired');
+      msg.setEDNS(4096, true);
+      assert.deepStrictEqual(
+        msg.getJSON().edns.options,
+        [{
+          code: 'EDE',
+          option: {
+            infoCode: 7,
+            extraText: 'Signature Expired'
+          }
+        }]
+      );
+    });
   });
 });
