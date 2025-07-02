@@ -27,9 +27,9 @@ describe('Wire', function() {
       rootJson = JSON.parse(fs.readFileSync(ROOT_JSON, 'utf8'));
       rootRaw = rootJson.map(hex => Buffer.from(hex, 'hex'));
 
-      assert.strictEqual(rootZone.length, 22540);
-      assert.strictEqual(rootJson.length, 22540);
-      assert.strictEqual(rootRaw.length, 22540);
+      assert.strictEqual(rootZone.length, 24430);
+      assert.strictEqual(rootJson.length, 24430);
+      assert.strictEqual(rootRaw.length, 24430);
 
       assert.strictEqual(rootZone.length, rootJson.length);
       assert.strictEqual(rootZone.length, rootRaw.length);

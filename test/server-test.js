@@ -17,7 +17,7 @@ const UnboundResolver = require('../lib/resolver/unbound');
 const RootResolver = require('../lib/resolver/root');
 const AuthServer = require('../lib/server/auth');
 const RecursiveServer = require('../lib/server/recursive');
-const {types, codes, Record, KSK_2010} = wire;
+const {types, codes, Record, KSK_2017} = wire;
 
 const ROOT_ZONE = Path.resolve(__dirname, 'data', 'root.zone');
 const COM_RESPONSE = Path.resolve(__dirname, 'data', 'com-response.zone');
@@ -329,7 +329,7 @@ describe('Server', function() {
     recServer.resolver.setStub(
       '127.0.0.1',
       5301,
-      Record.fromString(KSK_2010)
+      Record.fromString(KSK_2017)
     );
 
     await recServer.bind(5302, '127.0.0.1');
@@ -415,7 +415,7 @@ describe('Server', function() {
       dnssec: true
     });
 
-    res.setStub('127.0.0.1', 5301, Record.fromString(KSK_2010));
+    res.setStub('127.0.0.1', 5301, Record.fromString(KSK_2017));
 
     res.on('error', (err) => {
       throw err;
@@ -440,7 +440,7 @@ describe('Server', function() {
       dnssec: true
     });
 
-    res.setStub('127.0.0.1', 5301, Record.fromString(KSK_2010));
+    res.setStub('127.0.0.1', 5301, Record.fromString(KSK_2017));
 
     res.on('error', (err) => {
       throw err;
@@ -476,7 +476,7 @@ describe('Server', function() {
 
     await res.open();
 
-    util.fakeTime('2018-08-05:00:00.000Z');
+    util.fakeTime('2022-05-21:00:00.000Z');
 
     const msg = await res.lookup('com.');
     assert(msg.code === codes.NOERROR);
@@ -496,7 +496,7 @@ describe('Server', function() {
   });
 
   it('should have total requests', () => {
-    assert.strictEqual(authQueries, 16);
+    assert.strictEqual(authQueries, 11);
     assert.strictEqual(recQueries, 1);
   });
 
