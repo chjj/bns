@@ -12,11 +12,11 @@ jobs:
 
     strategy:
       matrix:
-        node_version: [10.x, 12.x, 14.x]
+        node_version: [16.x, 18.x, 20.x, 24.x]
 
     steps:
       - name: Checkout Unbound
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: nlnetlabs/unbound
           path: ub
@@ -29,10 +29,10 @@ jobs:
              sudo ldconfig
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
 
       - name: Install
         run: npm install
