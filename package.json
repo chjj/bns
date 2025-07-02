@@ -30,27 +30,28 @@
     "whois.js": "./bin/whois.js"
   },
   "scripts": {
-    "lint": "eslint bin/* lib/ test/ || exit 0",
+    "lint": "eslint bin/* lib/ test/",
     "test": "bmocha --reporter spec test/*-test.js",
     "test-browser": "bmocha -H --reporter spec test/*-test.js",
     "test-file": "bmocha --reporter spec"
   },
   "dependencies": {
-    "bcrypto": "~5.4.0",
-    "bfile": "~0.2.2",
-    "bheep": "~0.1.5",
-    "binet": "~0.3.6",
-    "bs32": "~0.1.6",
-    "bsert": "~0.0.10",
+    "bcrypto": "~5.5.2",
+    "bfile": "~0.2.3",
+    "bheep": "~0.1.6",
+    "binet": "~0.3.9",
+    "bs32": "~0.1.7",
+    "bsert": "~0.0.13",
     "btcp": "~0.1.5",
     "budp": "~0.1.6",
-    "bufio": "~1.0.7"
+    "bufio": "~1.2.3"
   },
   "optionalDependencies": {
     "unbound": "~0.4.3"
   },
   "devDependencies": {
-    "bmocha": "^2.1.5"
+    "bmocha": "^2.2.1",
+    "bslintrc": "^0.0.3"
   },
   "engines": {
     "node": ">=8.0.0"
